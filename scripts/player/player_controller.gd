@@ -19,17 +19,30 @@ var spawn_position := Vector3.ZERO
 func _ready() -> void:
     add_to_group("player")
     spawn_position = global_position
-    Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+    # En Web el navegador exige una interacción del usuario para bloquear el puntero.
+    # Se deja visible al iniciar y el primer clic dentro del juego activa el control de cámara.
+    Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     GameState.player_died.connect(_on_player_died)
+    GameState.notification.emit("Haz clic para controlar la cámara · Esc libera el ratón")
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-        rotate_y(-event.relative.x * mouse_sensitivity)
-        pitch = clamp(pitch - event.relative.y * mouse_sensitivity, camera_min_pitch, camera_max_pitch)
-        pivot.rotation.x = pitch
+    if event is InputEventMouseButton:
+        if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+            _capture_mouse()
+            get_viewport().set_input_as_handled()
+            return
+
+    if event is InputEventMouseMotion:
+        if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+            _rotate_view(event.relative)
         return
+
     if event.is_action_pressed("ui_cancel"):
-        Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED
+        if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+            Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        else:
+            _capture_mouse()
+        return
     elif event.is_action_pressed("interact"):
         _interact()
     elif event.is_action_pressed("primary_action"):
@@ -49,6 +62,21 @@ func _unhandled_input(event: InputEvent) -> void:
             if event.is_action_pressed("hotbar_%d" % (index + 1)):
                 GameState.select_hotbar(index)
                 break
+
+func _capture_mouse() -> void:
+    Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _rotate_view(relative_motion: Vector2) -> void:
+    # Giro horizontal: rota al jugador completo para que movimiento y mirada coincidan.
+    rotate_y(-relative_motion.x * mouse_sensitivity)
+
+    # Giro vertical: solo inclina el pivote de cámara y evita vueltas completas.
+    pitch = clamp(
+        pitch - relative_motion.y * mouse_sensitivity,
+        camera_min_pitch,
+        camera_max_pitch
+    )
+    pivot.rotation.x = pitch
 
 func _physics_process(delta: float) -> void:
     if not is_on_floor():
