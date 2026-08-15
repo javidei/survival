@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/quaternius/fantasy_props/models/Crate_Wooden.gltf" id="1_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape_crate"]
+size = Vector3(1.15, 1.0, 1.15)
+
+[node name="CrateQuaternius" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.5, 0)
+shape = SubResource("BoxShape_crate")
