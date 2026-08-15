@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney/fantasy_town/models/fence.glb" id="1_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape_fence"]
+size = Vector3(2.4, 1.25, 0.24)
+
+[node name="FenceKenney" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.62, 0)
+shape = SubResource("BoxShape_fence")
