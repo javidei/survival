@@ -1,10 +1,10 @@
 ; Engine configuration file.
-; Naranjal Survival 0.2.3
+; Naranjal Survival 0.2.4
 config_version=5
 
 [application]
 config/name="Naranjal Survival"
-config/version="0.2.3"
+config/version="0.2.4"
 run/main_scene="res://scenes/intro.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 
@@ -17,12 +17,15 @@ window/size/viewport_height=720
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
 
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 renderer/rendering_method.web="gl_compatibility"
 textures/default_filters/use_nearest_mipmap_filter=false
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true
 
 [input]
 move_forward={"deadzone":0.3,"events":[Object(InputEventKey,"physical_keycode":87)]}

@@ -1,10 +1,11 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/world_builder.gd" id="2_world"]
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="3_hud"]
 [ext_resource type="Script" path="res://scripts/systems/day_night.gd" id="4_daynight"]
 [ext_resource type="Script" path="res://scripts/systems/build_system.gd" id="5_build"]
+[ext_resource type="Script" path="res://scripts/world/world_details.gd" id="6_details"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.19, 0.38, 0.6, 1)
@@ -80,6 +81,9 @@ shape = SubResource("GroundShape")
 [node name="WorldBuilder" type="Node3D" parent="."]
 script = ExtResource("2_world")
 
+[node name="WorldDetails" type="Node3D" parent="."]
+script = ExtResource("6_details")
+
 [node name="Player" parent="." instance=ExtResource("1_player")]
 position = Vector3(0, 0.1, 7)
 
@@ -114,7 +118,7 @@ offset_right = 560.0
 offset_bottom = 118.0
 theme_override_colors/font_color = Color(0.11, 0.2, 0.17, 0.85)
 theme_override_font_sizes/font_size = 15
-text = "NARANJAL SURVIVAL  •  ALPHA 0.2.0"
+text = "NARANJAL SURVIVAL  •  ALPHA 0.2.4"
 
 [node name="PromptLabel" type="Label" parent="HUD"]
 unique_name_in_owner = true

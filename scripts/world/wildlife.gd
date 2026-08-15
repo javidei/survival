@@ -79,38 +79,120 @@ func _die() -> void:
 func get_interaction_text() -> String:
     return "Jabalí hostil" if hostile else "Animal salvaje"
 
+func _part(mesh: Mesh, material: Material, position: Vector3, scale_value := Vector3.ONE, rotation_value := Vector3.ZERO) -> MeshInstance3D:
+    var part := MeshInstance3D.new()
+    part.mesh = mesh
+    part.material_override = material
+    part.position = position
+    part.scale = scale_value
+    part.rotation = rotation_value
+    add_child(part)
+    return part
+
 func _build_visual() -> void:
+    var fur := StandardMaterial3D.new()
+    fur.albedo_color = Color("#4b3328") if hostile else Color("#8d6847")
+    fur.roughness = 0.96
+
+    var fur_light := StandardMaterial3D.new()
+    fur_light.albedo_color = Color("#6f4c38") if hostile else Color("#b18861")
+    fur_light.roughness = 0.95
+
+    var dark := StandardMaterial3D.new()
+    dark.albedo_color = Color("#171513")
+    dark.roughness = 0.9
+
+    var tusk_mat := StandardMaterial3D.new()
+    tusk_mat.albedo_color = Color("#e4d7b5")
+    tusk_mat.roughness = 0.72
+
+    # Torso largo y hombros altos: silueta mucho más reconocible de jabalí.
     var body_mesh := SphereMesh.new()
     body_mesh.radius = 0.62
-    body_mesh.height = 1.05
-    body_mesh.radial_segments = 8
-    body_mesh.rings = 4
-    var body_mat := StandardMaterial3D.new()
-    body_mat.albedo_color = Color("#5c4032") if hostile else Color("#b68b5a")
-    body_mat.roughness = 0.92
-    var body := MeshInstance3D.new()
-    body.mesh = body_mesh
-    body.material_override = body_mat
-    body.position = Vector3(0, 0.75, 0)
-    body.scale = Vector3(1.2, 0.8, 1.5)
-    add_child(body)
+    body_mesh.height = 1.08
+    body_mesh.radial_segments = 10
+    body_mesh.rings = 6
+    _part(body_mesh, fur, Vector3(0, 0.78, 0.08), Vector3(1.16, 0.86, 1.62))
+
+    var shoulder_mesh := SphereMesh.new()
+    shoulder_mesh.radius = 0.48
+    shoulder_mesh.height = 0.86
+    shoulder_mesh.radial_segments = 9
+    shoulder_mesh.rings = 5
+    _part(shoulder_mesh, fur_light, Vector3(0, 0.88, -0.48), Vector3(1.12, 1.0, 1.08))
 
     var head_mesh := SphereMesh.new()
     head_mesh.radius = 0.38
-    head_mesh.height = 0.62
-    head_mesh.radial_segments = 8
-    head_mesh.rings = 4
-    var head := MeshInstance3D.new()
-    head.mesh = head_mesh
-    head.material_override = body_mat
-    head.position = Vector3(0, 0.83, -0.72)
-    head.scale = Vector3(0.9, 0.75, 1.0)
-    add_child(head)
+    head_mesh.height = 0.66
+    head_mesh.radial_segments = 9
+    head_mesh.rings = 5
+    _part(head_mesh, fur, Vector3(0, 0.88, -0.9), Vector3(0.95, 0.82, 1.12))
+
+    var snout_mesh := BoxMesh.new()
+    snout_mesh.size = Vector3(0.42, 0.28, 0.5)
+    _part(snout_mesh, fur_light, Vector3(0, 0.76, -1.23), Vector3.ONE)
+
+    var nose_mesh := BoxMesh.new()
+    nose_mesh.size = Vector3(0.34, 0.2, 0.12)
+    _part(nose_mesh, dark, Vector3(0, 0.76, -1.52), Vector3.ONE)
+
+    # Orejas inclinadas.
+    var ear_mesh := BoxMesh.new()
+    ear_mesh.size = Vector3(0.18, 0.3, 0.09)
+    _part(ear_mesh, fur, Vector3(-0.27, 1.17, -0.92), Vector3.ONE, Vector3(0, 0, deg_to_rad(-28)))
+    _part(ear_mesh, fur, Vector3(0.27, 1.17, -0.92), Vector3.ONE, Vector3(0, 0, deg_to_rad(28)))
+
+    # Ojos.
+    var eye_mesh := SphereMesh.new()
+    eye_mesh.radius = 0.045
+    eye_mesh.height = 0.09
+    eye_mesh.radial_segments = 6
+    eye_mesh.rings = 3
+    _part(eye_mesh, dark, Vector3(-0.2, 0.94, -1.22), Vector3.ONE)
+    _part(eye_mesh, dark, Vector3(0.2, 0.94, -1.22), Vector3.ONE)
+
+    # Colmillos a ambos lados del hocico.
+    var tusk_mesh := CylinderMesh.new()
+    tusk_mesh.top_radius = 0.025
+    tusk_mesh.bottom_radius = 0.055
+    tusk_mesh.height = 0.3
+    tusk_mesh.radial_segments = 7
+    _part(tusk_mesh, tusk_mat, Vector3(-0.22, 0.68, -1.42), Vector3.ONE, Vector3(deg_to_rad(65), 0, deg_to_rad(-18)))
+    _part(tusk_mesh, tusk_mat, Vector3(0.22, 0.68, -1.42), Vector3.ONE, Vector3(deg_to_rad(65), 0, deg_to_rad(18)))
+
+    # Cuatro patas diferenciadas.
+    var leg_mesh := CylinderMesh.new()
+    leg_mesh.top_radius = 0.11
+    leg_mesh.bottom_radius = 0.13
+    leg_mesh.height = 0.64
+    leg_mesh.radial_segments = 7
+    for p in [
+        Vector3(-0.4, 0.34, -0.5), Vector3(0.4, 0.34, -0.5),
+        Vector3(-0.4, 0.34, 0.58), Vector3(0.4, 0.34, 0.58)
+    ]:
+        _part(leg_mesh, fur, p)
+
+    var hoof_mesh := BoxMesh.new()
+    hoof_mesh.size = Vector3(0.22, 0.12, 0.3)
+    for p in [
+        Vector3(-0.4, 0.08, -0.55), Vector3(0.4, 0.08, -0.55),
+        Vector3(-0.4, 0.08, 0.53), Vector3(0.4, 0.08, 0.53)
+    ]:
+        _part(hoof_mesh, dark, p)
+
+    # Cola corta levantada.
+    var tail_mesh := CylinderMesh.new()
+    tail_mesh.top_radius = 0.035
+    tail_mesh.bottom_radius = 0.055
+    tail_mesh.height = 0.42
+    tail_mesh.radial_segments = 6
+    _part(tail_mesh, fur, Vector3(0, 0.88, 1.05), Vector3.ONE, Vector3(deg_to_rad(62), 0, 0))
 
     var shape := CapsuleShape3D.new()
-    shape.radius = 0.55
-    shape.height = 1.25
+    shape.radius = 0.58
+    shape.height = 1.45
     var collision := CollisionShape3D.new()
     collision.shape = shape
     collision.position = Vector3(0, 0.62, 0)
+    collision.rotation.x = deg_to_rad(90)
     add_child(collision)

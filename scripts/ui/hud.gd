@@ -1,7 +1,5 @@
 extends CanvasLayer
 
-const UI_FONT: Font = preload("res://assets/fonts/Windows Regular.ttf")
-
 @export var player_path: NodePath
 @onready var inventory_label: Label = %InventoryLabel
 @onready var prompt_label: Label = %PromptLabel
@@ -15,9 +13,6 @@ var notification_label: Label
 var notification_time := 0.0
 
 func _ready() -> void:
-    _apply_font(inventory_label, 18)
-    _apply_font(prompt_label, 18)
-    _apply_font(status_label, 16)
     _build_extra_labels()
     GameState.inventory_changed.connect(_on_inventory_changed)
     GameState.stats_changed.connect(_on_stats_changed)
@@ -37,21 +32,17 @@ func _process(delta: float) -> void:
     var clock_text := "Día 1 · 08:00"
     if is_instance_valid(day_night) and day_night.has_method("get_display_time"):
         clock_text = day_night.get_display_time()
-    status_label.text = "NARANJAL SURVIVAL  •  ALPHA 0.2.3  •  %s" % clock_text
+    status_label.text = "NARANJAL SURVIVAL  •  ALPHA 0.2.4  •  %s" % clock_text
     if notification_time > 0.0:
         notification_time -= delta
         notification_label.visible = true
     else:
         notification_label.visible = false
 
-func _apply_font(label: Label, size: int) -> void:
-    label.add_theme_font_override("font", UI_FONT)
-    label.add_theme_font_size_override("font_size", size)
-
 func _build_extra_labels() -> void:
     survival_label = Label.new()
     survival_label.position = Vector2(20, 122)
-    _apply_font(survival_label, 16)
+    survival_label.add_theme_font_size_override("font_size", 16)
     survival_label.add_theme_color_override("font_color", Color(0.95, 0.97, 0.9, 1))
     add_child(survival_label)
 
@@ -60,14 +51,14 @@ func _build_extra_labels() -> void:
     hotbar_label.position = Vector2(-390, -42)
     hotbar_label.size = Vector2(780, 30)
     hotbar_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _apply_font(hotbar_label, 16)
+    hotbar_label.add_theme_font_size_override("font_size", 16)
     hotbar_label.add_theme_color_override("font_color", Color("#fff0c8"))
     add_child(hotbar_label)
 
     recipe_label = Label.new()
     recipe_label.position = Vector2(20, 150)
     recipe_label.size = Vector2(650, 28)
-    _apply_font(recipe_label, 14)
+    recipe_label.add_theme_font_size_override("font_size", 14)
     recipe_label.add_theme_color_override("font_color", Color(0.84, 0.91, 0.82, 1))
     add_child(recipe_label)
 
@@ -76,7 +67,7 @@ func _build_extra_labels() -> void:
     notification_label.position = Vector2(-260, 22)
     notification_label.size = Vector2(520, 34)
     notification_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _apply_font(notification_label, 18)
+    notification_label.add_theme_font_size_override("font_size", 18)
     notification_label.add_theme_color_override("font_color", Color("#ffd17a"))
     notification_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
     notification_label.add_theme_constant_override("shadow_offset_x", 2)
