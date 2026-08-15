@@ -1,0 +1,144 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/world/world_builder.gd" id="2_world"]
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="3_hud"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
+sky_top_color = Color(0.19, 0.38, 0.6, 1)
+sky_horizon_color = Color(0.71, 0.84, 0.88, 1)
+ground_bottom_color = Color(0.08, 0.13, 0.12, 1)
+ground_horizon_color = Color(0.49, 0.66, 0.57, 1)
+sun_angle_max = 18.0
+sun_curve = 0.12
+
+[sub_resource type="Sky" id="Sky"]
+sky_material = SubResource("SkyMaterial")
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 2
+sky = SubResource("Sky")
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.62, 0.73, 0.72, 1)
+fog_density = 0.0045
+fog_height = 0.0
+fog_height_density = 0.12
+
+[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
+albedo_color = Color(0.31, 0.55, 0.31, 1)
+roughness = 0.95
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+material = SubResource("GroundMaterial")
+size = Vector2(140, 140)
+subdivide_width = 18
+subdivide_depth = 18
+
+[sub_resource type="BoxShape3D" id="GroundShape"]
+size = Vector3(140, 0.4, 140)
+
+[sub_resource type="StyleBoxFlat" id="PanelStyle"]
+bg_color = Color(0.035, 0.055, 0.055, 0.82)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-48, -32, 0)
+light_color = Color(1, 0.89, 0.72, 1)
+light_energy = 1.35
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("GroundMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+position = Vector3(0, -0.2, 0)
+shape = SubResource("GroundShape")
+
+[node name="WorldBuilder" type="Node3D" parent="."]
+script = ExtResource("2_world")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector3(0, 0.1, 7)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("3_hud")
+player_path = NodePath("../Player")
+
+[node name="TopPanel" type="PanelContainer" parent="HUD"]
+offset_left = 20.0
+offset_top = 18.0
+offset_right = 588.0
+offset_bottom = 76.0
+theme_override_styles/panel = SubResource("PanelStyle")
+
+[node name="Margin" type="MarginContainer" parent="HUD/TopPanel"]
+
+[node name="InventoryLabel" type="Label" parent="HUD/TopPanel/Margin"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.94, 0.97, 0.9, 1)
+theme_override_font_sizes/font_size = 18
+text = "Madera  0    Piedra  0    Fibra  0"
+
+[node name="StatusLabel" type="Label" parent="HUD"]
+unique_name_in_owner = true
+offset_left = 20.0
+offset_top = 88.0
+offset_right = 420.0
+offset_bottom = 118.0
+theme_override_colors/font_color = Color(0.11, 0.2, 0.17, 0.85)
+theme_override_font_sizes/font_size = 15
+text = "NARANJAL SURVIVAL  •  ALPHA 0.1.0"
+
+[node name="PromptLabel" type="Label" parent="HUD"]
+unique_name_in_owner = true
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -170.0
+offset_top = -84.0
+offset_right = 170.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.93, 0.72, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "[E] Recoger"
+horizontal_alignment = 1
+visible = false
+
+[node name="HelpLabel" type="Label" parent="HUD"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -360.0
+offset_top = -74.0
+offset_right = -22.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.72)
+theme_override_font_sizes/font_size = 14
+text = "WASD mover  ·  Shift correr  ·  Espacio saltar  ·  E interactuar"
+horizontal_alignment = 2
