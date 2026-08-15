@@ -47,13 +47,14 @@ func _material(key: String, color: Color, roughness := 0.85) -> StandardMaterial
     material_cache[key] = mat
     return mat
 
-func _make_mesh(mesh: Mesh, material: Material, position: Vector3, scale_value := Vector3.ONE, parent: Node3D = self) -> MeshInstance3D:
+func _make_mesh(mesh: Mesh, material: Material, position: Vector3, scale_value := Vector3.ONE, parent: Node3D = null) -> MeshInstance3D:
     var instance := MeshInstance3D.new()
     instance.mesh = mesh
     instance.material_override = material
     instance.position = position
     instance.scale = scale_value
-    parent.add_child(instance)
+    var target_parent: Node3D = parent if parent != null else self
+    target_parent.add_child(instance)
     return instance
 
 func _make_tree(position: Vector3, scale_value: float) -> void:
