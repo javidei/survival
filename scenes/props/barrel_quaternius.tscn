@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/quaternius/fantasy_props/models/Barrel.gltf" id="1_model"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape_barrel"]
+radius = 0.48
+height = 1.1
+
+[node name="BarrelQuaternius" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.55, 0)
+shape = SubResource("CylinderShape_barrel")
