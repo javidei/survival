@@ -80,14 +80,14 @@ func _make_tree(position: Vector3, scale_value: float) -> void:
     trunk.radial_segments = 7
     _make_mesh(trunk, _material("bark", Color("#76513b")), Vector3(0, 1.85, 0), Vector3.ONE, root)
 
-    var crown := ConeMesh.new()
+    var crown := CylinderMesh.new()
     crown.bottom_radius = 1.65
     crown.top_radius = 0.18
     crown.height = 3.7
     crown.radial_segments = 8
     _make_mesh(crown, _material("pine", Color("#3f7e4f")), Vector3(0, 4.35, 0), Vector3.ONE, root)
 
-    var crown2 := ConeMesh.new()
+    var crown2 := CylinderMesh.new()
     crown2.bottom_radius = 1.3
     crown2.top_radius = 0.12
     crown2.height = 2.8
