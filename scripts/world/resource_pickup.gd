@@ -9,12 +9,8 @@ func _ready() -> void:
 
 func interact(_player: Node) -> void:
     GameState.add_resource(resource_id, amount)
+    GameState.notification.emit("+%d %s" % [amount, GameState.get_item_name(resource_id)])
     queue_free()
 
 func get_interaction_text() -> String:
-    var names := {
-        "wood": "madera",
-        "stone": "piedra",
-        "fiber": "fibra",
-    }
-    return "%s %s" % [interaction_label, names.get(resource_id, resource_id)]
+    return "%s %s" % [interaction_label, GameState.get_item_name(resource_id).to_lower()]
