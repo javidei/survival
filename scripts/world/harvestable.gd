@@ -16,6 +16,26 @@ func _ready() -> void:
     collision_layer = 2
     collision_mask = 0
     hits_left = hits_required
+    _create_solid_collision()
+
+func _create_solid_collision() -> void:
+    var solid := StaticBody3D.new()
+    solid.collision_layer = 1
+    solid.collision_mask = 1
+    var collision := CollisionShape3D.new()
+    if resource_id == "wood":
+        var shape := CapsuleShape3D.new()
+        shape.radius = 0.42
+        shape.height = 3.8
+        collision.shape = shape
+        collision.position = Vector3(0, 1.9, 0)
+    else:
+        var shape := SphereShape3D.new()
+        shape.radius = 0.55
+        collision.shape = shape
+        collision.position = Vector3(0, 0.4, 0)
+    solid.add_child(collision)
+    add_child(solid)
 
 func harvest(tool_id: String, attacker: Node) -> void:
     if _broken:
