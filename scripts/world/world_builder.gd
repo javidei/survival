@@ -30,7 +30,7 @@ func _build_forest() -> void:
         _make_flower(_random_ground_position(4.0))
 
 func _random_ground_position(clear_radius: float) -> Vector3:
-    for _attempt in 20:
+    for _attempt in range(20):
         var angle := rng.randf_range(0.0, TAU)
         var distance := sqrt(rng.randf()) * world_radius
         var p := Vector3(cos(angle) * distance, 0.0, sin(angle) * distance)
