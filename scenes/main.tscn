@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://bnvtpuwuk2co7" path="res://scripts/systems/day_night.gd" id="4_daynight"]
 [ext_resource type="Script" uid="uid://db772723eyfwr" path="res://scripts/systems/build_system.gd" id="5_build"]
 [ext_resource type="Script" uid="uid://cd0x7xaj7qyh4" path="res://scripts/world/world_details.gd" id="6_details"]
+[ext_resource type="Script" path="res://scripts/world/asset_world_decorator.gd" id="7_assets"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.19, 0.38, 0.6, 1)
@@ -81,6 +82,9 @@ script = ExtResource("2_world")
 
 [node name="WorldDetails" type="Node3D" parent="." unique_id=996049812]
 script = ExtResource("6_details")
+
+[node name="AssetWorldDecorator" type="Node3D" parent="."]
+script = ExtResource("7_assets")
 
 [node name="Player" parent="." unique_id=433498072 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.028796911, 0.1, 8.004487)
