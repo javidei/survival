@@ -32,10 +32,10 @@ func _draw() -> void:
     # Pixel Adventure se renderiza a 320x180 y luego se escala. Aquí conservamos
     # esa cuadrícula, pero obligando a que el factor de escala sea entero para
     # que el navegador no interpole los píxeles ni emborrone la tipografía.
-    var raw_scale := minf(size.x / VIEW_WIDTH, size.y / VIEW_HEIGHT)
-    var scale_factor := floor(raw_scale) if raw_scale >= 1.0 else raw_scale
+    var raw_scale: float = minf(size.x / VIEW_WIDTH, size.y / VIEW_HEIGHT)
+    var scale_factor: float = floor(raw_scale) if raw_scale >= 1.0 else raw_scale
     scale_factor = maxf(scale_factor, 0.01)
-    var scaled_size := BASE_SIZE * scale_factor
+    var scaled_size: Vector2 = BASE_SIZE * scale_factor
     var offset := Vector2(
         floor((size.x - scaled_size.x) * 0.5),
         floor((size.y - scaled_size.y) * 0.5)
