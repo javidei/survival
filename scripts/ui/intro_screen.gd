@@ -1,22 +1,24 @@
 extends Control
 
-const COMMODORE_FONT: Font = preload("res://assets/fonts/Commodore Pixelized v1.2.ttf")
+const TITLE_FONT_SOURCE: FontFile = preload("res://assets/fonts/ONESIZE_.TTF")
+const REVERSE_FONT_SOURCE: FontFile = preload("res://assets/fonts/ONESR___.TTF")
 const GAME_SCENE := "res://scenes/main.tscn"
 
-const VIEW_WIDTH := 320.0
-const VIEW_HEIGHT := 180.0
-const BASE_SIZE := Vector2(VIEW_WIDTH, VIEW_HEIGHT)
-
-const COL_TEXT := Color("f3e7c8")
+const BASE_SIZE := Vector2(1280.0, 720.0)
+const COL_TITLE := Color("f3e7c8")
 const COL_GOLD := Color("e5b96d")
 const COL_TOP := Color("918a9c")
 const COL_VERSION := Color("555564")
 
+var title_font: FontFile
+var reverse_font: FontFile
 var changing_scene := false
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     mouse_filter = Control.MOUSE_FILTER_STOP
+    title_font = _pixel_font(TITLE_FONT_SOURCE)
+    reverse_font = _pixel_font(REVERSE_FONT_SOURCE)
     queue_redraw()
 
 func _process(_delta: float) -> void:
@@ -26,28 +28,46 @@ func _notification(what: int) -> void:
     if what == NOTIFICATION_RESIZED:
         queue_redraw()
 
+func _pixel_font(source: FontFile) -> FontFile:
+    var font := source.duplicate() as FontFile
+    font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+    font.hinting = TextServer.HINTING_NONE
+    font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+    font.generate_mipmaps = false
+    font.multichannel_signed_distance_field = false
+    font.oversampling = 1.0
+    font.allow_system_fallback = false
+    return font
+
 func _draw() -> void:
     draw_rect(Rect2(Vector2.ZERO, size), Color.BLACK)
 
-    # Pixel Adventure se renderiza a 320x180 y luego se escala. Aquí conservamos
-    # esa cuadrícula, pero obligando a que el factor de escala sea entero para
-    # que el navegador no interpole los píxeles ni emborrone la tipografía.
-    var raw_scale: float = minf(size.x / VIEW_WIDTH, size.y / VIEW_HEIGHT)
-    var scale_factor: float = floor(raw_scale) if raw_scale >= 1.0 else raw_scale
-    scale_factor = maxf(scale_factor, 0.01)
-    var scaled_size: Vector2 = BASE_SIZE * scale_factor
-    var offset := Vector2(
-        floor((size.x - scaled_size.x) * 0.5),
-        floor((size.y - scaled_size.y) * 0.5)
-    )
+    # Se dibuja directamente a la resolución real del viewport. No se escala un
+    # lienzo 320x180: así los TTF pixel se rasterizan una sola vez y conservan
+    # bordes de 1 bit nítidos también en la exportación Web.
+    var scale_factor: float = minf(size.x / BASE_SIZE.x, size.y / BASE_SIZE.y)
+    scale_factor = maxf(scale_factor, 0.1)
+    var content_width := minf(size.x, BASE_SIZE.x * scale_factor)
+    var left := floor((size.x - content_width) * 0.5)
 
-    draw_set_transform(offset, 0.0, Vector2(scale_factor, scale_factor))
-    _comm_center("BIENVENIDO A", 52.0, COL_TOP, 8)
-    _comm_center("NARANJAL SURVIVAL", 82.0, COL_TEXT, 15)
+    _center_text(reverse_font, "BIENVENIDO A", left, content_width, 150.0 * scale_factor, max(12, int(round(28.0 * scale_factor))), COL_TOP)
+    _center_text(title_font, "NARANJAL SURVIVAL", left, content_width, 315.0 * scale_factor, max(24, int(round(64.0 * scale_factor))), COL_TITLE)
+
     if int(Time.get_ticks_msec() / 520) % 2 == 0:
-        _comm_center("PULSA PARA CONTINUAR", 114.0, COL_GOLD, 8)
-    _comm_center("NARANJAL SURVIVAL - PROTOTIPO 0.2.4", 164.0, COL_VERSION, 6)
-    draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+        _center_text(title_font, "PULSA PARA CONTINUAR", left, content_width, 465.0 * scale_factor, max(14, int(round(32.0 * scale_factor))), COL_GOLD)
+
+    _center_text(reverse_font, "NARANJAL SURVIVAL - PROTOTIPO 0.2.5", left, content_width, 665.0 * scale_factor, max(10, int(round(18.0 * scale_factor))), COL_VERSION)
+
+func _center_text(font: Font, text: String, left: float, width: float, baseline_y: float, font_size: int, color: Color) -> void:
+    draw_string(
+        font,
+        Vector2(round(left), round(baseline_y)),
+        text,
+        HORIZONTAL_ALIGNMENT_CENTER,
+        round(width),
+        font_size,
+        color
+    )
 
 func _input(event: InputEvent) -> void:
     if changing_scene:
@@ -67,14 +87,3 @@ func _is_activation_event(event: InputEvent) -> bool:
         var key := event as InputEventKey
         return key.pressed and not key.echo
     return false
-
-func _comm_center(text: String, y: float, color: Color, font_size: int) -> void:
-    draw_string(
-        COMMODORE_FONT,
-        Vector2(12.0, y),
-        text,
-        HORIZONTAL_ALIGNMENT_CENTER,
-        296.0,
-        font_size,
-        color
-    )
