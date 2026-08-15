@@ -1,0 +1,90 @@
+name: Export Naranjal Survival Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: survival-pages
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.1"
+
+jobs:
+  export-web:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.7.1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Preparar plantillas de exportación
+        run: |
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          mkdir -p "$HOME/.config"
+          if [ -d /root/.config/godot ]; then
+            mv /root/.config/godot "$HOME/.config/godot"
+          fi
+          if [ -d "/root/.local/share/godot/export_templates/${GODOT_VERSION}.stable" ]; then
+            mv "/root/.local/share/godot/export_templates/${GODOT_VERSION}.stable" "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          fi
+
+      - name: Importar proyecto y validar GDScript
+        run: |
+          set +e
+          godot --headless --editor --path . --quit > import.log 2>&1
+          STATUS=$?
+          set -e
+          cat import.log
+          if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Failed to load script" import.log; then
+            echo "La importación contiene errores; no se publicará."
+            exit 1
+          fi
+
+      - name: Exportar Web
+        run: |
+          rm -rf web
+          mkdir -p web
+          set +e
+          godot --headless --path . --export-release "Web" web/index.html > export.log 2>&1
+          STATUS=$?
+          set -e
+          cat export.log
+          if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Failed to load script" export.log; then
+            echo "La exportación web ha fallado."
+            exit 1
+          fi
+          test -s web/index.html
+          test -s web/index.wasm
+          test -s web/index.pck
+          touch web/.nojekyll
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Preparar artefacto
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  deploy-pages:
+    name: Publicar juego
+    needs: export-web
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

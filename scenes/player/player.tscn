@@ -1,0 +1,132 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player/avatar_animator.gd" id="2_avatar"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
+radius = 0.42
+height = 1.8
+
+[sub_resource type="SphereShape3D" id="InteractionShape"]
+radius = 2.4
+
+[sub_resource type="StandardMaterial3D" id="SkinMaterial"]
+albedo_color = Color(0.92, 0.69, 0.51, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="ShirtMaterial"]
+albedo_color = Color(0.91, 0.38, 0.18, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="TrouserMaterial"]
+albedo_color = Color(0.12, 0.19, 0.23, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="BootMaterial"]
+albedo_color = Color(0.16, 0.12, 0.1, 1)
+roughness = 0.95
+
+[sub_resource type="SphereMesh" id="HeadMesh"]
+radius = 0.26
+height = 0.52
+radial_segments = 10
+rings = 5
+
+[sub_resource type="BoxMesh" id="TorsoMesh"]
+size = Vector3(0.72, 0.78, 0.38)
+
+[sub_resource type="CapsuleMesh" id="LimbMesh"]
+radius = 0.1
+height = 0.72
+radial_segments = 7
+rings = 3
+
+[sub_resource type="CapsuleMesh" id="LegMesh"]
+radius = 0.12
+height = 0.78
+radial_segments = 7
+rings = 3
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("CapsuleShape_player")
+
+[node name="Visual" type="Node3D" parent="."]
+script = ExtResource("2_avatar")
+
+[node name="Torso" type="MeshInstance3D" parent="Visual"]
+position = Vector3(0, 1.26, 0)
+mesh = SubResource("TorsoMesh")
+material_override = SubResource("ShirtMaterial")
+
+[node name="Head" type="MeshInstance3D" parent="Visual"]
+position = Vector3(0, 1.94, 0)
+mesh = SubResource("HeadMesh")
+material_override = SubResource("SkinMaterial")
+
+[node name="LeftArm" type="Node3D" parent="Visual"]
+position = Vector3(-0.45, 1.47, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Visual/LeftArm"]
+position = Vector3(0, -0.31, 0)
+mesh = SubResource("LimbMesh")
+material_override = SubResource("SkinMaterial")
+
+[node name="RightArm" type="Node3D" parent="Visual"]
+position = Vector3(0.45, 1.47, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Visual/RightArm"]
+position = Vector3(0, -0.31, 0)
+mesh = SubResource("LimbMesh")
+material_override = SubResource("SkinMaterial")
+
+[node name="LeftLeg" type="Node3D" parent="Visual"]
+position = Vector3(-0.2, 0.86, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Visual/LeftLeg"]
+position = Vector3(0, -0.37, 0)
+mesh = SubResource("LegMesh")
+material_override = SubResource("TrouserMaterial")
+
+[node name="Boot" type="MeshInstance3D" parent="Visual/LeftLeg"]
+position = Vector3(0, -0.76, -0.06)
+scale = Vector3(1.1, 0.45, 1.45)
+mesh = SubResource("LegMesh")
+material_override = SubResource("BootMaterial")
+
+[node name="RightLeg" type="Node3D" parent="Visual"]
+position = Vector3(0.2, 0.86, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Visual/RightLeg"]
+position = Vector3(0, -0.37, 0)
+mesh = SubResource("LegMesh")
+material_override = SubResource("TrouserMaterial")
+
+[node name="Boot" type="MeshInstance3D" parent="Visual/RightLeg"]
+position = Vector3(0, -0.76, -0.06)
+scale = Vector3(1.1, 0.45, 1.45)
+mesh = SubResource("LegMesh")
+material_override = SubResource("BootMaterial")
+
+[node name="CameraPivot" type="Node3D" parent="."]
+position = Vector3(0, 1.55, 0)
+rotation = Vector3(-0.20944, 0, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+spring_length = 5.2
+margin = 0.15
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+current = true
+fov = 72.0
+
+[node name="InteractionArea" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("InteractionShape")
