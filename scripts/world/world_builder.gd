@@ -1,6 +1,9 @@
 extends Node3D
 
 const PICKUP_SCRIPT = preload("res://scripts/world/resource_pickup.gd")
+const HARVESTABLE_SCRIPT = preload("res://scripts/world/harvestable.gd")
+const WILDLIFE_SCRIPT = preload("res://scripts/world/wildlife.gd")
+const WATER_SOURCE_SCRIPT = preload("res://scripts/world/water_source.gd")
 
 @export var seed_value := 10493
 @export var world_radius := 58.0
@@ -16,12 +19,13 @@ func _ready() -> void:
     rng.seed = seed_value
     _build_forest()
     _build_cabin(Vector3(-16.0, 0.0, -21.0))
+    _build_water_source(Vector3(15.0, 0.02, -12.0))
     _spawn_resources()
+    _spawn_wildlife()
 
 func _build_forest() -> void:
     for i in range(tree_count):
-        var p := _random_ground_position(10.0)
-        _make_tree(p, rng.randf_range(0.8, 1.45))
+        _make_tree(_random_ground_position(10.0), rng.randf_range(0.8, 1.45))
     for i in range(rock_count):
         _make_rock(_random_ground_position(6.0), rng.randf_range(0.65, 1.7))
     for i in range(bush_count):
@@ -58,8 +62,14 @@ func _make_mesh(mesh: Mesh, material: Material, position: Vector3, scale_value :
     return instance
 
 func _make_tree(position: Vector3, scale_value: float) -> void:
-    var root := Node3D.new()
+    var root := Area3D.new()
+    root.set_script(HARVESTABLE_SCRIPT)
+    root.set("resource_id", "wood")
+    root.set("required_tool", "axe")
+    root.set("hits_required", 4)
+    root.set("drop_amount", rng.randi_range(3, 6))
     root.position = position
+    root.scale = Vector3.ONE * scale_value
     root.rotation.y = rng.randf_range(0.0, TAU)
     add_child(root)
 
@@ -68,30 +78,55 @@ func _make_tree(position: Vector3, scale_value: float) -> void:
     trunk.bottom_radius = 0.36
     trunk.height = 3.7
     trunk.radial_segments = 7
-    _make_mesh(trunk, _material("bark", Color("#76513b")), Vector3(0, 1.85, 0), Vector3.ONE * scale_value, root)
+    _make_mesh(trunk, _material("bark", Color("#76513b")), Vector3(0, 1.85, 0), Vector3.ONE, root)
 
     var crown := ConeMesh.new()
     crown.bottom_radius = 1.65
     crown.top_radius = 0.18
     crown.height = 3.7
     crown.radial_segments = 8
-    _make_mesh(crown, _material("pine", Color("#3f7e4f")), Vector3(0, 4.35, 0), Vector3.ONE * scale_value, root)
+    _make_mesh(crown, _material("pine", Color("#3f7e4f")), Vector3(0, 4.35, 0), Vector3.ONE, root)
 
     var crown2 := ConeMesh.new()
     crown2.bottom_radius = 1.3
     crown2.top_radius = 0.12
     crown2.height = 2.8
     crown2.radial_segments = 8
-    _make_mesh(crown2, _material("pine_light", Color("#55965c")), Vector3(0, 5.65, 0), Vector3.ONE * scale_value, root)
+    _make_mesh(crown2, _material("pine_light", Color("#55965c")), Vector3(0, 5.65, 0), Vector3.ONE, root)
+
+    var collision := CollisionShape3D.new()
+    var shape := CapsuleShape3D.new()
+    shape.radius = 0.5
+    shape.height = 4.1
+    collision.shape = shape
+    collision.position = Vector3(0, 2.0, 0)
+    root.add_child(collision)
 
 func _make_rock(position: Vector3, scale_value: float) -> void:
+    var root := Area3D.new()
+    root.set_script(HARVESTABLE_SCRIPT)
+    root.set("resource_id", "stone")
+    root.set("required_tool", "pickaxe")
+    root.set("hits_required", 3)
+    root.set("drop_amount", rng.randi_range(2, 5))
+    root.position = position
+    root.scale = Vector3.ONE * scale_value
+    root.rotation = Vector3(rng.randf_range(-0.12, 0.12), rng.randf_range(0.0, TAU), rng.randf_range(-0.12, 0.12))
+    add_child(root)
+
     var mesh := SphereMesh.new()
     mesh.radius = 0.55
     mesh.height = 1.1
     mesh.radial_segments = 7
     mesh.rings = 4
-    var rock := _make_mesh(mesh, _material("rock", Color("#788178")), position + Vector3(0, 0.35, 0), Vector3(scale_value, scale_value * 0.65, scale_value * 0.85))
-    rock.rotation = Vector3(rng.randf_range(-0.2, 0.2), rng.randf_range(0.0, TAU), rng.randf_range(-0.18, 0.18))
+    _make_mesh(mesh, _material("rock", Color("#788178")), Vector3(0, 0.35, 0), Vector3(1.0, 0.65, 0.85), root)
+
+    var collision := CollisionShape3D.new()
+    var shape := SphereShape3D.new()
+    shape.radius = 0.6
+    collision.shape = shape
+    collision.position = Vector3(0, 0.4, 0)
+    root.add_child(collision)
 
 func _make_bush(position: Vector3, scale_value: float) -> void:
     var mesh := SphereMesh.new()
@@ -154,13 +189,65 @@ func _build_cabin(position: Vector3) -> void:
     light.omni_range = 8.0
     cabin.add_child(light)
 
-func _spawn_resources() -> void:
-    for i in range(24):
-        _create_pickup("wood", _random_ground_position(7.0), Color("#b77a44"), Vector3(0.22, 0.22, 0.8))
+func _build_water_source(position: Vector3) -> void:
+    var source := Area3D.new()
+    source.set_script(WATER_SOURCE_SCRIPT)
+    source.position = position
+    add_child(source)
+
+    var water_mesh := CylinderMesh.new()
+    water_mesh.top_radius = 3.2
+    water_mesh.bottom_radius = 3.2
+    water_mesh.height = 0.08
+    water_mesh.radial_segments = 28
+    var water_mat := StandardMaterial3D.new()
+    water_mat.albedo_color = Color(0.24, 0.62, 0.78, 0.78)
+    water_mat.metallic = 0.12
+    water_mat.roughness = 0.22
+    _make_mesh(water_mesh, water_mat, Vector3.ZERO, Vector3.ONE, source)
+
+    var collision := CollisionShape3D.new()
+    var shape := CylinderShape3D.new()
+    shape.radius = 3.2
+    shape.height = 0.5
+    collision.shape = shape
+    source.add_child(collision)
+
     for i in range(16):
+        var angle := TAU * float(i) / 16.0
+        var rock_pos := Vector3(cos(angle) * 3.4, 0.18, sin(angle) * 3.4)
+        var mesh := SphereMesh.new()
+        mesh.radius = 0.34
+        mesh.height = 0.55
+        mesh.radial_segments = 7
+        mesh.rings = 4
+        _make_mesh(mesh, _material("pond_rock", Color("#717d73")), rock_pos, Vector3(1.0, 0.65, 0.9), source)
+
+func _spawn_resources() -> void:
+    for i in range(15):
+        _create_pickup("wood", _random_ground_position(7.0), Color("#b77a44"), Vector3(0.22, 0.22, 0.8))
+    for i in range(10):
         _create_pickup("stone", _random_ground_position(7.0), Color("#9da49f"), Vector3(0.42, 0.32, 0.48))
-    for i in range(20):
+    for i in range(18):
         _create_pickup("fiber", _random_ground_position(7.0), Color("#82bd55"), Vector3(0.35, 0.52, 0.35))
+    for i in range(14):
+        _create_pickup("berry", _random_ground_position(7.0), Color("#c34b69"), Vector3(0.25, 0.25, 0.25))
+
+func _spawn_wildlife() -> void:
+    for i in range(7):
+        _create_wildlife(false, _random_ground_position(16.0))
+    for i in range(4):
+        _create_wildlife(true, _random_ground_position(24.0))
+
+func _create_wildlife(hostile: bool, position: Vector3) -> void:
+    var animal := CharacterBody3D.new()
+    animal.set_script(WILDLIFE_SCRIPT)
+    animal.set("hostile", hostile)
+    animal.set("move_speed", 2.8 if hostile else 2.0)
+    animal.set("health", 4 if hostile else 3)
+    animal.set("meat_drops", 3 if hostile else 2)
+    animal.position = position + Vector3(0, 0.1, 0)
+    add_child(animal)
 
 func _create_pickup(resource_id: String, position: Vector3, color: Color, scale_value: Vector3) -> void:
     var area := Area3D.new()
