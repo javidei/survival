@@ -9,11 +9,13 @@ signal time_changed(day: int, hour: float)
 var day := 1
 var hour := 8.0
 var sun: DirectionalLight3D
+var world_environment: WorldEnvironment
 
 func _ready() -> void:
     add_to_group("day_night")
     hour = start_hour
     sun = get_node_or_null(sun_path) as DirectionalLight3D
+    world_environment = get_parent().get_node_or_null("WorldEnvironment") as WorldEnvironment
     _apply_light()
 
 func _process(delta: float) -> void:
@@ -25,14 +27,17 @@ func _process(delta: float) -> void:
     time_changed.emit(day, hour)
 
 func _apply_light() -> void:
-    if not is_instance_valid(sun):
-        return
     var normalized := hour / 24.0
-    sun.rotation_degrees.x = normalized * 360.0 - 90.0
-    sun.rotation_degrees.y = -32.0
     var daylight := clampf(sin((hour - 6.0) / 12.0 * PI), 0.0, 1.0)
-    sun.light_energy = lerpf(0.05, 1.35, daylight)
-    sun.light_color = Color("#ffb56b").lerp(Color("#fff1d2"), daylight)
+    if is_instance_valid(sun):
+        sun.rotation_degrees.x = normalized * 360.0 - 90.0
+        sun.rotation_degrees.y = -32.0
+        sun.light_energy = lerpf(0.025, 1.35, daylight)
+        sun.light_color = Color("#7f98c9").lerp(Color("#fff1d2"), daylight)
+    if is_instance_valid(world_environment) and world_environment.environment != null:
+        world_environment.environment.background_energy_multiplier = lerpf(0.12, 1.0, daylight)
+        world_environment.environment.fog_light_energy = lerpf(0.18, 1.0, daylight)
+        world_environment.environment.fog_light_color = Color("#263852").lerp(Color("#9ebaba"), daylight)
 
 func get_display_time() -> String:
     var hours := int(floor(hour))
