@@ -45,11 +45,11 @@ func _replace_harvestable_visuals() -> void:
 
         var resource_id := str(child.get("resource_id"))
         if resource_id == "wood":
-            var scene: PackedScene = KENNEY_TREE_SCENES[rng.randi_range(0, KENNEY_TREE_SCENES.size() - 1)]
-            _replace_visual(child, scene, Vector3.ONE * 1.55)
+            var tree_scene: PackedScene = KENNEY_TREE_SCENES[rng.randi_range(0, KENNEY_TREE_SCENES.size() - 1)]
+            _replace_visual(child, tree_scene, Vector3.ONE * 1.55)
         elif resource_id == "stone":
-            var scene: PackedScene = KENNEY_ROCK_SCENES[rng.randi_range(0, KENNEY_ROCK_SCENES.size() - 1)]
-            _replace_visual(child, scene, Vector3.ONE * 1.15)
+            var rock_scene: PackedScene = KENNEY_ROCK_SCENES[rng.randi_range(0, KENNEY_ROCK_SCENES.size() - 1)]
+            _replace_visual(child, rock_scene, Vector3.ONE * 1.15)
 
 func _replace_visual(root: Node3D, scene: PackedScene, local_scale: Vector3) -> void:
     for child in root.get_children():
