@@ -1,10 +1,10 @@
 ; Engine configuration file.
-; Naranjal Survival 0.2.2
+; Naranjal Survival 0.2.3
 config_version=5
 
 [application]
 config/name="Naranjal Survival"
-config/version="0.2.2"
+config/version="0.2.3"
 run/main_scene="res://scenes/intro.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 

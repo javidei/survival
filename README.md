@@ -2,7 +2,7 @@
 
 Survival 3D en **Godot 4** con dirección visual low-poly/colorida inspirada en la claridad de juegos como *Raft*, pero ambientado en un bosque abierto.
 
-## Estado: 0.2.2 alpha
+## Estado: 0.2.3 alpha
 
 **Demo web:** https://javidei.github.io/survival/
 
@@ -10,7 +10,7 @@ La demo se exporta automáticamente desde `main` mediante GitHub Actions y se pu
 
 Esta versión ya contiene un bucle survival jugable de base:
 
-- pantalla de bienvenida previa al juego con el mismo estilo y la misma tipografía Commodore de Pixel Adventure;
+- pantalla de bienvenida previa al juego con tipografías pixel integradas dentro del propio proyecto;
 - personaje humanoide en tercera persona;
 - cámara libre/orbital con ratón, caminar, correr y saltar;
 - movimiento relativo a la dirección de la cámara;
@@ -32,7 +32,9 @@ Esta versión ya contiene un bucle survival jugable de base:
 
 ## Pantalla inicial
 
-El proyecto arranca ahora en `scenes/intro.tscn` antes de cargar el mundo 3D. La pantalla utiliza la fuente `Commodore Pixelized v1.2.ttf` tomada del mismo recurso de Pixel Adventure y conserva su composición virtual 320×180, escalada de forma uniforme a la resolución del Survival.
+El proyecto arranca en `scenes/intro.tscn` antes de cargar el mundo 3D y conserva la composición virtual 320×180 de la pantalla de referencia, escalada de forma uniforme a la resolución del Survival.
+
+La 0.2.3 integra directamente los TTF proporcionados para evitar depender de fuentes del sistema o de recursos remapeados: `BMmini.TTF` para el título principal y `ONESR___.TTF` para `BIENVENIDO A`, `PULSA PARA CONTINUAR` y la versión. `Windows Regular.ttf` queda integrada y se utiliza en el HUD del juego.
 
 Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y la versión del prototipo. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
 
