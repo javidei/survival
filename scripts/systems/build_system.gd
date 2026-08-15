@@ -1,5 +1,7 @@
 extends Node3D
 
+const CAMPFIRE_SCRIPT = preload("res://scripts/world/campfire.gd")
+
 @export var player_path: NodePath
 @export var grid_size := 2.0
 
@@ -110,6 +112,7 @@ func _create_structure(item_id: String, placement: Transform3D) -> bool:
         light.light_energy = 1.6
         light.omni_range = 7.0
         body.add_child(light)
+
         var fire_mesh := SphereMesh.new()
         fire_mesh.radius = 0.28
         fire_mesh.height = 0.55
@@ -123,4 +126,14 @@ func _create_structure(item_id: String, placement: Transform3D) -> bool:
         fire_mat.emission_energy_multiplier = 2.6
         fire_instance.material_override = fire_mat
         body.add_child(fire_instance)
+
+        var cooker := Area3D.new()
+        cooker.set_script(CAMPFIRE_SCRIPT)
+        cooker.position = Vector3(0, 0.55, 0)
+        var cooker_collision := CollisionShape3D.new()
+        var cooker_shape := SphereShape3D.new()
+        cooker_shape.radius = 1.1
+        cooker_collision.shape = cooker_shape
+        cooker.add_child(cooker_collision)
+        body.add_child(cooker)
     return true
