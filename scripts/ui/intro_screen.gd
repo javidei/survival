@@ -29,7 +29,7 @@ func _notification(what: int) -> void:
         queue_redraw()
 
 func _pixel_font(source: FontFile) -> FontFile:
-    var font := source.duplicate() as FontFile
+    var font: FontFile = source.duplicate() as FontFile
     font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
     font.hinting = TextServer.HINTING_NONE
     font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
@@ -42,21 +42,20 @@ func _pixel_font(source: FontFile) -> FontFile:
 func _draw() -> void:
     draw_rect(Rect2(Vector2.ZERO, size), Color.BLACK)
 
-    # Se dibuja directamente a la resolución real del viewport. No se escala un
-    # lienzo 320x180: así los TTF pixel se rasterizan una sola vez y conservan
-    # bordes de 1 bit nítidos también en la exportación Web.
+    # Render directo a la resolución real: sin lienzo 320x180 reescalado.
+    # Las fuentes se rasterizan en 1 bit, sin antialiasing ni subpíxel.
     var scale_factor: float = minf(size.x / BASE_SIZE.x, size.y / BASE_SIZE.y)
     scale_factor = maxf(scale_factor, 0.1)
-    var content_width := minf(size.x, BASE_SIZE.x * scale_factor)
-    var left := floor((size.x - content_width) * 0.5)
+    var content_width: float = minf(size.x, BASE_SIZE.x * scale_factor)
+    var left: float = floor((size.x - content_width) * 0.5)
 
-    _center_text(reverse_font, "BIENVENIDO A", left, content_width, 150.0 * scale_factor, max(12, int(round(28.0 * scale_factor))), COL_TOP)
-    _center_text(title_font, "NARANJAL SURVIVAL", left, content_width, 315.0 * scale_factor, max(24, int(round(64.0 * scale_factor))), COL_TITLE)
+    _center_text(reverse_font, "BIENVENIDO A", left, content_width, 150.0 * scale_factor, maxi(12, int(round(28.0 * scale_factor))), COL_TOP)
+    _center_text(title_font, "NARANJAL SURVIVAL", left, content_width, 315.0 * scale_factor, maxi(24, int(round(64.0 * scale_factor))), COL_TITLE)
 
     if int(Time.get_ticks_msec() / 520) % 2 == 0:
-        _center_text(title_font, "PULSA PARA CONTINUAR", left, content_width, 465.0 * scale_factor, max(14, int(round(32.0 * scale_factor))), COL_GOLD)
+        _center_text(title_font, "PULSA PARA CONTINUAR", left, content_width, 465.0 * scale_factor, maxi(14, int(round(32.0 * scale_factor))), COL_GOLD)
 
-    _center_text(reverse_font, "NARANJAL SURVIVAL - PROTOTIPO 0.2.5", left, content_width, 665.0 * scale_factor, max(10, int(round(18.0 * scale_factor))), COL_VERSION)
+    _center_text(reverse_font, "NARANJAL SURVIVAL - PROTOTIPO 0.2.5", left, content_width, 665.0 * scale_factor, maxi(10, int(round(18.0 * scale_factor))), COL_VERSION)
 
 func _center_text(font: Font, text: String, left: float, width: float, baseline_y: float, font_size: int, color: Color) -> void:
     draw_string(
