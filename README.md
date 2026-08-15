@@ -4,6 +4,10 @@ Survival 3D en **Godot 4** con dirección visual low-poly/colorida inspirada en 
 
 ## Estado: 0.2.0 alpha
 
+**Demo web:** https://javidei.github.io/survival/
+
+La demo se exporta automáticamente desde `main` mediante GitHub Actions y se publica en GitHub Pages.
+
 Esta versión ya contiene un bucle survival jugable de base:
 
 - personaje humanoide en tercera persona;
