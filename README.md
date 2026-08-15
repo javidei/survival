@@ -2,7 +2,7 @@
 
 Survival 3D en **Godot 4** con dirección visual low-poly/colorida inspirada en la claridad de juegos como *Raft*, pero ambientado en un bosque abierto.
 
-## Estado: 0.2.0 alpha
+## Estado: 0.2.1 alpha
 
 **Demo web:** https://javidei.github.io/survival/
 
@@ -11,7 +11,8 @@ La demo se exporta automáticamente desde `main` mediante GitHub Actions y se pu
 Esta versión ya contiene un bucle survival jugable de base:
 
 - personaje humanoide en tercera persona;
-- cámara orbital, caminar, correr y saltar;
+- cámara libre/orbital con ratón, caminar, correr y saltar;
+- movimiento relativo a la dirección de la cámara;
 - bosque abierto generado en tiempo de ejecución;
 - árboles talables con hacha y rocas picables con pico;
 - drops físicos de madera, piedra y carne;
@@ -30,18 +31,19 @@ Esta versión ya contiene un bucle survival jugable de base:
 
 ## Controles
 
-- `WASD`: movimiento
+- `Clic dentro del juego`: capturar el ratón y activar la cámara
+- `Ratón`: girar la cámara horizontal y verticalmente
+- `WASD`: movimiento relativo a donde estás mirando
 - `Shift`: correr
 - `Espacio`: saltar
-- `Ratón`: cámara
 - `E`: recoger / beber / cocinar / interactuar
-- `Clic izquierdo`: usar herramienta, atacar o colocar una construcción
+- `Clic izquierdo` con el ratón capturado: usar herramienta, atacar o colocar una construcción
 - `1`–`6`: seleccionar hotbar
 - `C`: fabricar la receta activa
 - `V`: cambiar de receta
 - `F`: comer comida disponible
 - `R`: girar la pieza de construcción
-- `Esc`: liberar/capturar el ratón
+- `Esc`: liberar el ratón; vuelve a hacer clic para recuperar la cámara
 
 ## Hotbar
 
