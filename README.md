@@ -2,7 +2,7 @@
 
 Survival 3D en **Godot 4** con dirección visual low-poly/colorida inspirada en la claridad de juegos como *Raft*, pero ambientado en un bosque abierto.
 
-## Estado: 0.2.1 alpha
+## Estado: 0.2.2 alpha
 
 **Demo web:** https://javidei.github.io/survival/
 
@@ -10,6 +10,7 @@ La demo se exporta automáticamente desde `main` mediante GitHub Actions y se pu
 
 Esta versión ya contiene un bucle survival jugable de base:
 
+- pantalla de bienvenida previa al juego con el mismo estilo y la misma tipografía Commodore de Pixel Adventure;
 - personaje humanoide en tercera persona;
 - cámara libre/orbital con ratón, caminar, correr y saltar;
 - movimiento relativo a la dirección de la cámara;
@@ -29,8 +30,15 @@ Esta versión ya contiene un bucle survival jugable de base:
 - HUD con estadísticas, recursos, receta activa, hotbar y hora del día;
 - cabaña abandonada y entorno stylized con niebla e iluminación cálida.
 
+## Pantalla inicial
+
+El proyecto arranca ahora en `scenes/intro.tscn` antes de cargar el mundo 3D. La pantalla utiliza la fuente `Commodore Pixelized v1.2.ttf` tomada del mismo recurso de Pixel Adventure y conserva su composición virtual 320×180, escalada de forma uniforme a la resolución del Survival.
+
+Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y la versión del prototipo. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
+
 ## Controles
 
+- En la pantalla inicial: cualquier tecla, clic izquierdo o toque para continuar
 - `Clic dentro del juego`: capturar el ratón y activar la cámara
 - `Ratón`: girar la cámara horizontal y verticalmente
 - `WASD`: movimiento relativo a donde estás mirando
