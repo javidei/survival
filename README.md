@@ -2,7 +2,7 @@
 
 Survival 3D en **Godot 4** con dirección visual low-poly/colorida inspirada en la claridad de juegos como *Raft*, pero ambientado en un bosque abierto.
 
-## Estado: 0.2.3 alpha
+## Estado: 0.2.5 alpha
 
 **Demo web:** https://javidei.github.io/survival/
 
@@ -32,11 +32,13 @@ Esta versión ya contiene un bucle survival jugable de base:
 
 ## Pantalla inicial
 
-El proyecto arranca en `scenes/intro.tscn` antes de cargar el mundo 3D y conserva la composición virtual 320×180 de la pantalla de referencia, escalada de forma uniforme a la resolución del Survival.
+El proyecto arranca en `scenes/intro.tscn` antes de cargar el mundo 3D.
 
-La 0.2.3 integra directamente los TTF proporcionados para evitar depender de fuentes del sistema o de recursos remapeados: `BMmini.TTF` para el título principal y `ONESR___.TTF` para `BIENVENIDO A`, `PULSA PARA CONTINUAR` y la versión. `Windows Regular.ttf` queda integrada y se utiliza en el HUD del juego.
+La 0.2.5 elimina el reescalado previo a 320×180 que podía suavizar la letra en navegador. La intro se dibuja directamente a la resolución real del viewport y desactiva antialiasing y posicionamiento subpíxel para mantener los bordes de los glifos totalmente nítidos.
 
-Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y la versión del prototipo. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
+La composición usa los TTF pixel proporcionados por el proyecto: `ONESIZE_.TTF` para **NARANJAL SURVIVAL** y **PULSA PARA CONTINUAR**, y `ONESR___.TTF` para **BIENVENIDO A** y la línea de versión. Ambas fuentes se renderizan como bitmaps de 1 bit, sin interpolación.
+
+Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y `NARANJAL SURVIVAL - PROTOTIPO 0.2.5`. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
 
 ## Controles
 
