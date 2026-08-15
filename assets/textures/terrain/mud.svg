@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <pattern id="mud" width="128" height="128" patternUnits="userSpaceOnUse">
+      <rect width="128" height="128" fill="#5f583e"/>
+      <ellipse cx="24" cy="27" rx="15" ry="5" fill="#3f4737" opacity=".48"/>
+      <ellipse cx="89" cy="18" rx="21" ry="7" fill="#7b704b" opacity=".42"/>
+      <ellipse cx="55" cy="64" rx="18" ry="6" fill="#3d4537" opacity=".5"/>
+      <ellipse cx="111" cy="84" rx="13" ry="4" fill="#82764d" opacity=".38"/>
+      <ellipse cx="19" cy="105" rx="17" ry="5" fill="#454a38" opacity=".5"/>
+      <ellipse cx="75" cy="116" rx="20" ry="6" fill="#756b49" opacity=".34"/>
+      <circle cx="44" cy="39" r="2.3" fill="#9a8958" opacity=".35"/>
+      <circle cx="102" cy="48" r="2" fill="#313b34" opacity=".45"/>
+    </pattern>
+  </defs>
+  <rect width="512" height="512" fill="url(#mud)"/>
+</svg>

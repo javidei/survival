@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <pattern id="dirt" width="64" height="64" patternUnits="userSpaceOnUse">
+      <rect width="64" height="64" fill="#9a7047"/>
+      <circle cx="9" cy="12" r="4" fill="#79563b" opacity=".55"/>
+      <circle cx="28" cy="8" r="2.4" fill="#c1925a" opacity=".7"/>
+      <circle cx="51" cy="19" r="5" fill="#7d5b3f" opacity=".45"/>
+      <circle cx="17" cy="34" r="3" fill="#b88450" opacity=".72"/>
+      <circle cx="39" cy="42" r="4" fill="#75533a" opacity=".5"/>
+      <circle cx="58" cy="53" r="2.5" fill="#c49b65" opacity=".65"/>
+      <circle cx="4" cy="55" r="2" fill="#684a35" opacity=".45"/>
+      <path d="M22 55c8-4 14-4 20 0M3 27c6-3 11-3 16 0" fill="none" stroke="#bb8751" stroke-width="2" opacity=".35"/>
+    </pattern>
+  </defs>
+  <rect width="512" height="512" fill="url(#dirt)"/>
+</svg>

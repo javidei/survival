@@ -55,7 +55,7 @@ func _draw() -> void:
     if int(Time.get_ticks_msec() / 520) % 2 == 0:
         _center_text(title_font, "PULSA PARA CONTINUAR", left, content_width, 465.0 * scale_factor, maxi(14, int(round(32.0 * scale_factor))), COL_GOLD)
 
-    _center_text(reverse_font, "NARANJAL SURVIVAL - PROTOTIPO 0.2.5", left, content_width, 665.0 * scale_factor, maxi(10, int(round(18.0 * scale_factor))), COL_VERSION)
+    _center_text(reverse_font, "NARANJAL SURVIVAL - PROTOTIPO 0.2.6", left, content_width, 665.0 * scale_factor, maxi(10, int(round(18.0 * scale_factor))), COL_VERSION)
 
 func _center_text(font: Font, text: String, left: float, width: float, baseline_y: float, font_size: int, color: Color) -> void:
     draw_string(

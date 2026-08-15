@@ -1,6 +1,9 @@
 extends Node3D
 
 const CAMPFIRE_SCRIPT = preload("res://scripts/world/campfire.gd")
+const DIRT_TEXTURE = preload("res://assets/textures/terrain/dirt.svg")
+const GRASS_TEXTURE = preload("res://assets/textures/terrain/grass.svg")
+const ROCK_TEXTURE = preload("res://assets/textures/terrain/rock.svg")
 
 var material_cache: Dictionary = {}
 
@@ -14,7 +17,7 @@ func _ready() -> void:
     _build_lantern(Vector3(-5.4, 0.0, -5.6))
     _build_lantern(Vector3(-9.4, 0.0, -10.4))
 
-func _material(key: String, color: Color, roughness := 0.9) -> StandardMaterial3D:
+func _material(key: String, color: Color, roughness: float = 0.9) -> StandardMaterial3D:
     if material_cache.has(key):
         return material_cache[key]
     var mat := StandardMaterial3D.new()
@@ -23,7 +26,18 @@ func _material(key: String, color: Color, roughness := 0.9) -> StandardMaterial3
     material_cache[key] = mat
     return mat
 
-func _emissive_material(key: String, color: Color, energy := 2.8) -> StandardMaterial3D:
+func _textured_material(key: String, texture: Texture2D, tint: Color = Color.WHITE, uv_scale: float = 1.0, roughness: float = 0.9) -> StandardMaterial3D:
+    if material_cache.has(key):
+        return material_cache[key]
+    var mat := StandardMaterial3D.new()
+    mat.albedo_texture = texture
+    mat.albedo_color = tint
+    mat.roughness = roughness
+    mat.uv1_scale = Vector3(uv_scale, uv_scale, uv_scale)
+    material_cache[key] = mat
+    return mat
+
+func _emissive_material(key: String, color: Color, energy: float = 2.8) -> StandardMaterial3D:
     if material_cache.has(key):
         return material_cache[key]
     var mat := StandardMaterial3D.new()
@@ -52,14 +66,14 @@ func _build_spawn_ground() -> void:
     clearing.bottom_radius = 5.4
     clearing.height = 0.035
     clearing.radial_segments = 28
-    _mesh(clearing, _material("clearing", Color("#6e6845")), Vector3(-1.0, 0.015, 1.0))
+    _mesh(clearing, _textured_material("clearing_dirt", DIRT_TEXTURE, Color("#d3b185"), 3.2, 0.98), Vector3(-1.0, 0.015, 1.0))
 
     var grass_patch := CylinderMesh.new()
     grass_patch.top_radius = 2.2
     grass_patch.bottom_radius = 2.2
     grass_patch.height = 0.028
     grass_patch.radial_segments = 22
-    _mesh(grass_patch, _material("grass_patch", Color("#456f3b")), Vector3(3.2, 0.02, -1.8), Vector3(1.4, 1.0, 0.72))
+    _mesh(grass_patch, _textured_material("grass_patch_textured", GRASS_TEXTURE, Color("#d0e4bd"), 2.1, 0.96), Vector3(3.2, 0.02, -1.8), Vector3(1.4, 1.0, 0.72))
 
 func _build_starter_campfire(position: Vector3) -> void:
     var fire := Area3D.new()
@@ -82,7 +96,7 @@ func _build_starter_campfire(position: Vector3) -> void:
     for i in range(12):
         var angle := TAU * float(i) / 12.0
         var p := Vector3(cos(angle) * 0.72, 0.16, sin(angle) * 0.72)
-        _mesh(stone_mesh, _material("fire_stone", Color("#77766d")), p, Vector3(1.0, 0.65, 0.9), Vector3.ZERO, fire)
+        _mesh(stone_mesh, _textured_material("fire_stone_textured", ROCK_TEXTURE, Color("#c8ccc1"), 1.3, 0.97), p, Vector3(1.0, 0.65, 0.9), Vector3.ZERO, fire)
 
     var log_mesh := CylinderMesh.new()
     log_mesh.top_radius = 0.11
@@ -170,7 +184,7 @@ func _build_path(start: Vector3, end: Vector3) -> void:
     stone.bottom_radius = 0.6
     stone.height = 0.045
     stone.radial_segments = 8
-    var mat := _material("path_stone", Color("#85857a"))
+    var mat := _textured_material("path_stone_textured", ROCK_TEXTURE, Color("#cbd0c7"), 1.35, 0.96)
     var count := 15
     for i in range(count):
         var t := float(i) / float(count - 1)

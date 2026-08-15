@@ -4,6 +4,8 @@ const PICKUP_SCRIPT = preload("res://scripts/world/resource_pickup.gd")
 const HARVESTABLE_SCRIPT = preload("res://scripts/world/harvestable.gd")
 const WILDLIFE_SCRIPT = preload("res://scripts/world/wildlife.gd")
 const WATER_SOURCE_SCRIPT = preload("res://scripts/world/water_source.gd")
+const ROCK_TEXTURE = preload("res://assets/textures/terrain/rock.svg")
+const MUD_TEXTURE = preload("res://assets/textures/terrain/mud.svg")
 
 @export var seed_value := 10493
 @export var world_radius := 58.0
@@ -42,12 +44,23 @@ func _random_ground_position(clear_radius: float) -> Vector3:
             return p
     return Vector3(clear_radius + 2.0, 0.0, 0.0)
 
-func _material(key: String, color: Color, roughness := 0.85) -> StandardMaterial3D:
+func _material(key: String, color: Color, roughness: float = 0.85) -> StandardMaterial3D:
     if material_cache.has(key):
         return material_cache[key]
     var mat := StandardMaterial3D.new()
     mat.albedo_color = color
     mat.roughness = roughness
+    material_cache[key] = mat
+    return mat
+
+func _textured_material(key: String, texture: Texture2D, tint: Color = Color.WHITE, uv_scale: float = 1.0, roughness: float = 0.9) -> StandardMaterial3D:
+    if material_cache.has(key):
+        return material_cache[key]
+    var mat := StandardMaterial3D.new()
+    mat.albedo_texture = texture
+    mat.albedo_color = tint
+    mat.roughness = roughness
+    mat.uv1_scale = Vector3(uv_scale, uv_scale, uv_scale)
     material_cache[key] = mat
     return mat
 
@@ -119,7 +132,7 @@ func _make_rock(position: Vector3, scale_value: float) -> void:
     mesh.height = 1.1
     mesh.radial_segments = 7
     mesh.rings = 4
-    _make_mesh(mesh, _material("rock", Color("#788178")), Vector3(0, 0.35, 0), Vector3(1.0, 0.65, 0.85), root)
+    _make_mesh(mesh, _textured_material("rock_textured", ROCK_TEXTURE, Color("#d8ddd4"), 1.8, 0.94), Vector3(0, 0.35, 0), Vector3(1.0, 0.65, 0.85), root)
 
     var collision := CollisionShape3D.new()
     var shape := SphereShape3D.new()
@@ -195,6 +208,13 @@ func _build_water_source(position: Vector3) -> void:
     source.position = position
     add_child(source)
 
+    var mud_mesh := CylinderMesh.new()
+    mud_mesh.top_radius = 4.35
+    mud_mesh.bottom_radius = 4.35
+    mud_mesh.height = 0.035
+    mud_mesh.radial_segments = 32
+    _make_mesh(mud_mesh, _textured_material("mud_bank", MUD_TEXTURE, Color("#d6cfb2"), 3.0, 0.98), Vector3(0, -0.025, 0), Vector3.ONE, source)
+
     var water_mesh := CylinderMesh.new()
     water_mesh.top_radius = 3.2
     water_mesh.bottom_radius = 3.2
@@ -221,7 +241,7 @@ func _build_water_source(position: Vector3) -> void:
         mesh.height = 0.55
         mesh.radial_segments = 7
         mesh.rings = 4
-        _make_mesh(mesh, _material("pond_rock", Color("#717d73")), rock_pos, Vector3(1.0, 0.65, 0.9), source)
+        _make_mesh(mesh, _textured_material("pond_rock_textured", ROCK_TEXTURE, Color("#c7cec6"), 1.5, 0.96), rock_pos, Vector3(1.0, 0.65, 0.9), source)
 
 func _spawn_resources() -> void:
     for i in range(15):
