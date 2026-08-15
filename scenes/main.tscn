@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/world_builder.gd" id="2_world"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/systems/day_night.gd" id="4_daynight"]
 [ext_resource type="Script" path="res://scripts/systems/build_system.gd" id="5_build"]
 [ext_resource type="Script" path="res://scripts/world/world_details.gd" id="6_details"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/grass.svg" id="7_grass"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.19, 0.38, 0.6, 1)
@@ -29,8 +30,10 @@ fog_height = 0.0
 fog_height_density = 0.12
 
 [sub_resource type="StandardMaterial3D" id="GroundMaterial"]
-albedo_color = Color(0.31, 0.55, 0.31, 1)
+albedo_color = Color(0.9, 0.98, 0.9, 1)
+albedo_texture = ExtResource("7_grass")
 roughness = 0.95
+uv1_scale = Vector3(28, 28, 28)
 
 [sub_resource type="PlaneMesh" id="GroundMesh"]
 material = SubResource("GroundMaterial")
@@ -118,7 +121,7 @@ offset_right = 560.0
 offset_bottom = 118.0
 theme_override_colors/font_color = Color(0.11, 0.2, 0.17, 0.85)
 theme_override_font_sizes/font_size = 15
-text = "NARANJAL SURVIVAL  •  ALPHA 0.2.5"
+text = "NARANJAL SURVIVAL  •  ALPHA 0.2.6"
 
 [node name="PromptLabel" type="Label" parent="HUD"]
 unique_name_in_owner = true
