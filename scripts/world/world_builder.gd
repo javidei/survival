@@ -6,11 +6,11 @@ const WILDLIFE_SCRIPT = preload("res://scripts/world/wildlife.gd")
 const WATER_SOURCE_SCRIPT = preload("res://scripts/world/water_source.gd")
 
 @export var seed_value := 10493
-@export var world_radius := 92.0
-@export var tree_count := 165
-@export var rock_count := 68
-@export var bush_count := 110
-@export var flower_count := 90
+@export var world_radius := 68.0
+@export var tree_count := 0
+@export var rock_count := 0
+@export var bush_count := 0
+@export var flower_count := 28
 
 var rng := RandomNumberGenerator.new()
 var material_cache: Dictionary = {}
@@ -245,9 +245,9 @@ func _spawn_resources() -> void:
         _create_pickup("berry", _random_ground_position(7.0), Color("#c34b69"), Vector3(0.25, 0.25, 0.25))
 
 func _spawn_wildlife() -> void:
-    for i in range(12):
+    for i in range(4):
         _create_wildlife(false, _random_ground_position(18.0))
-    for i in range(6):
+    for i in range(2):
         _create_wildlife(true, _random_ground_position(28.0))
 
 func _create_wildlife(hostile: bool, position: Vector3) -> void:
