@@ -30,7 +30,7 @@ jobs:
 
       - name: Sincronizar fauna Quaternius CC0
         run: |
-          set -euo pipefail
+          set -eu
           TARGET="assets/third_party/quaternius/wildlife"
           mkdir -p "$TARGET"
 
