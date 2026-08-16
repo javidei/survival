@@ -128,7 +128,7 @@ offset_right = 560.0
 offset_bottom = 118.0
 theme_override_colors/font_color = Color(0.11, 0.2, 0.17, 0.85)
 theme_override_font_sizes/font_size = 15
-text = "NARANJAL SURVIVAL  •  ALPHA 0.2.8"
+text = "NARANJAL SURVIVAL  •  ALPHA 0.2.9"
 
 [node name="PromptLabel" type="Label" parent="HUD" unique_id=79910292]
 unique_name_in_owner = true
