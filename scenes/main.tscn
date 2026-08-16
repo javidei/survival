@@ -5,18 +5,15 @@
 [ext_resource type="Script" uid="uid://pm8qqnjdpis4" path="res://scripts/ui/hud.gd" id="3_hud"]
 [ext_resource type="Script" uid="uid://bnvtpuwuk2co7" path="res://scripts/systems/day_night.gd" id="4_daynight"]
 [ext_resource type="Script" uid="uid://db772723eyfwr" path="res://scripts/systems/build_system.gd" id="5_build"]
-[ext_resource type="Script" uid="uid://cd0x7xaj7qyh4" path="res://scripts/world/world_details.gd" id="6_details"]
-[ext_resource type="Script" path="res://scripts/world/asset_world_decorator.gd" id="7_assets"]
-[ext_resource type="Script" path="res://scripts/world/forest_asset_pass.gd" id="8_forest"]
-[ext_resource type="Script" path="res://scripts/world/settlement_refinement_pass.gd" id="9_refine"]
+[ext_resource type="Script" path="res://scripts/world/world_visual_overhaul.gd" id="6_visual"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
-sky_top_color = Color(0.19, 0.38, 0.6, 1)
-sky_horizon_color = Color(0.71, 0.84, 0.88, 1)
-ground_bottom_color = Color(0.08, 0.13, 0.12, 1)
-ground_horizon_color = Color(0.49, 0.66, 0.57, 1)
-sun_angle_max = 18.0
-sun_curve = 0.12
+sky_top_color = Color(0.16, 0.36, 0.58, 1)
+sky_horizon_color = Color(0.72, 0.84, 0.82, 1)
+ground_bottom_color = Color(0.07, 0.11, 0.09, 1)
+ground_horizon_color = Color(0.42, 0.58, 0.45, 1)
+sun_angle_max = 20.0
+sun_curve = 0.16
 
 [sub_resource type="Sky" id="Sky"]
 sky_material = SubResource("SkyMaterial")
@@ -25,25 +22,29 @@ sky_material = SubResource("SkyMaterial")
 background_mode = 2
 sky = SubResource("Sky")
 tonemap_mode = 2
+ambient_light_source = 3
+ambient_light_color = Color(0.58, 0.68, 0.62, 1)
+ambient_light_energy = 0.52
+reflected_light_source = 2
 fog_enabled = true
-fog_light_color = Color(0.62, 0.73, 0.72, 1)
-fog_density = 0.0036
-fog_height_density = 0.1
+fog_light_color = Color(0.61, 0.72, 0.69, 1)
+fog_density = 0.0017
+fog_height_density = 0.055
 
 [sub_resource type="Shader" id="GroundShader"]
-code = "shader_type spatial;\nrender_mode diffuse_burley, specular_schlick_ggx;\n\nvarying vec3 terrain_world_pos;\n\nfloat terrain_hash(vec2 p) {\n    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);\n}\n\nfloat terrain_noise(vec2 p) {\n    vec2 i = floor(p);\n    vec2 f = fract(p);\n    f = f * f * (3.0 - 2.0 * f);\n    float a = terrain_hash(i);\n    float b = terrain_hash(i + vec2(1.0, 0.0));\n    float c = terrain_hash(i + vec2(0.0, 1.0));\n    float d = terrain_hash(i + vec2(1.0, 1.0));\n    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);\n}\n\nfloat segment_distance(vec2 p, vec2 a, vec2 b) {\n    vec2 pa = p - a;\n    vec2 ba = b - a;\n    float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.0001), 0.0, 1.0);\n    return length(pa - ba * h);\n}\n\nvoid vertex() {\n    terrain_world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;\n}\n\nvoid fragment() {\n    vec2 p = terrain_world_pos.xz;\n    float fine = terrain_noise(p * 0.72);\n    float medium = terrain_noise(p * 0.21 + vec2(4.3, 8.1));\n    float broad = terrain_noise(p * 0.075 + vec2(12.0, 2.0));\n    float grain = terrain_noise(p * 2.7 + vec2(31.0, 17.0));\n\n    vec3 grass_shadow = vec3(0.075, 0.19, 0.055);\n    vec3 grass_mid = vec3(0.18, 0.38, 0.115);\n    vec3 grass_fresh = vec3(0.31, 0.52, 0.19);\n    vec3 grass_dry = vec3(0.39, 0.35, 0.17);\n    vec3 earth_dark = vec3(0.22, 0.15, 0.09);\n    vec3 earth_warm = vec3(0.39, 0.27, 0.14);\n\n    vec3 grass = mix(grass_shadow, grass_mid, fine);\n    grass = mix(grass, grass_fresh, medium * 0.34);\n    grass = mix(grass, grass_dry, smoothstep(0.68, 0.95, broad) * 0.28);\n    grass += (grain - 0.5) * 0.035;\n\n    float main_path = 1.0 - smoothstep(1.6, 3.3, segment_distance(p, vec2(0.0, 5.5), vec2(0.0, -21.0)));\n    float west_path = 1.0 - smoothstep(1.7, 3.6, segment_distance(p, vec2(0.0, -1.5), vec2(-16.0, -18.0)));\n    float market_path = 1.0 - smoothstep(1.7, 3.8, segment_distance(p, vec2(-15.0, -19.0), vec2(18.0, -35.0)));\n    float pond_path = 1.0 - smoothstep(1.7, 3.6, segment_distance(p, vec2(2.0, 2.0), vec2(12.0, -10.0)));\n    float village_clearing = 1.0 - smoothstep(7.5, 12.0, length(p - vec2(0.0, -8.8)));\n    float market_clearing = 1.0 - smoothstep(5.8, 9.5, length(p - vec2(18.0, -35.0)));\n\n    float path_mask = max(max(main_path, west_path), max(market_path, pond_path));\n    float clearing_mask = max(village_clearing * 0.46, market_clearing * 0.38);\n    float dirt_mask = clamp(max(path_mask * 0.72, clearing_mask), 0.0, 0.82);\n    dirt_mask *= 0.78 + terrain_noise(p * 0.31) * 0.22;\n\n    vec3 earth = mix(earth_dark, earth_warm, terrain_noise(p * 0.48));\n    earth += (grain - 0.5) * 0.025;\n    vec3 color = mix(grass, earth, dirt_mask);\n\n    ALBEDO = color;\n    ROUGHNESS = mix(0.96, 1.0, dirt_mask);\n}\n"
+code = "shader_type spatial;\nrender_mode diffuse_burley, specular_schlick_ggx;\n\nvarying vec3 terrain_world_pos;\n\nfloat terrain_hash(vec2 p) {\n    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);\n}\n\nfloat terrain_noise(vec2 p) {\n    vec2 i = floor(p);\n    vec2 f = fract(p);\n    f = f * f * (3.0 - 2.0 * f);\n    float a = terrain_hash(i);\n    float b = terrain_hash(i + vec2(1.0, 0.0));\n    float c = terrain_hash(i + vec2(0.0, 1.0));\n    float d = terrain_hash(i + vec2(1.0, 1.0));\n    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);\n}\n\nvoid vertex() {\n    float h1 = terrain_noise(VERTEX.xz * 0.065);\n    float h2 = terrain_noise(VERTEX.xz * 0.16 + vec2(4.0, 9.0));\n    VERTEX.y += (h1 - 0.5) * 0.16 + (h2 - 0.5) * 0.055;\n    terrain_world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;\n}\n\nvoid fragment() {\n    vec2 p = terrain_world_pos.xz;\n    float micro = terrain_noise(p * 1.9);\n    float small = terrain_noise(p * 0.58 + vec2(2.1, 7.8));\n    float medium = terrain_noise(p * 0.19 + vec2(12.0, 3.0));\n    float macro = terrain_noise(p * 0.055 + vec2(27.0, 18.0));\n\n    vec3 deep = vec3(0.095, 0.205, 0.065);\n    vec3 mid = vec3(0.18, 0.355, 0.105);\n    vec3 fresh = vec3(0.27, 0.47, 0.145);\n    vec3 dry = vec3(0.36, 0.33, 0.15);\n    vec3 earth = vec3(0.30, 0.215, 0.12);\n\n    vec3 color = mix(deep, mid, small);\n    color = mix(color, fresh, medium * 0.42);\n    color = mix(color, dry, smoothstep(0.72, 0.94, macro) * 0.26);\n    color = mix(color, earth, smoothstep(0.84, 0.98, small) * 0.12);\n    color += (micro - 0.5) * 0.055;\n\n    ALBEDO = color;\n    ROUGHNESS = 0.98;\n}\n"
 
 [sub_resource type="ShaderMaterial" id="GroundMaterial"]
 shader = SubResource("GroundShader")
 
 [sub_resource type="PlaneMesh" id="GroundMesh"]
 material = SubResource("GroundMaterial")
-size = Vector2(160, 160)
-subdivide_width = 32
-subdivide_depth = 32
+size = Vector2(180, 180)
+subdivide_width = 72
+subdivide_depth = 72
 
 [sub_resource type="BoxShape3D" id="GroundShape"]
-size = Vector3(160, 0.4, 160)
+size = Vector3(180, 0.4, 180)
 
 [sub_resource type="StyleBoxFlat" id="PanelStyle"]
 content_margin_left = 16.0
@@ -63,9 +64,10 @@ environment = SubResource("Environment")
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=2078603835]
 transform = Transform3D(0.8480481, 0.3938068, -0.35458517, 0, 0.66913056, 0.74314487, 0.52991927, -0.63022256, 0.5674549, 0, 0, 0)
-light_color = Color(1, 0.89, 0.72, 1)
-light_energy = 1.35
+light_color = Color(1, 0.91, 0.76, 1)
+light_energy = 1.58
 shadow_enabled = true
+directional_shadow_max_distance = 92.0
 
 [node name="DayNight" type="Node" parent="." unique_id=1582129238]
 script = ExtResource("4_daynight")
@@ -84,17 +86,8 @@ shape = SubResource("GroundShape")
 [node name="WorldBuilder" type="Node3D" parent="." unique_id=929848483]
 script = ExtResource("2_world")
 
-[node name="WorldDetails" type="Node3D" parent="." unique_id=996049812]
-script = ExtResource("6_details")
-
-[node name="AssetWorldDecorator" type="Node3D" parent="."]
-script = ExtResource("7_assets")
-
-[node name="ForestAssetPass" type="Node3D" parent="."]
-script = ExtResource("8_forest")
-
-[node name="SettlementRefinementPass" type="Node3D" parent="."]
-script = ExtResource("9_refine")
+[node name="WorldVisualOverhaul" type="Node3D" parent="."]
+script = ExtResource("6_visual")
 
 [node name="Player" parent="." unique_id=433498072 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.028796911, 0.02, 8.004487)
@@ -132,7 +125,7 @@ offset_right = 560.0
 offset_bottom = 118.0
 theme_override_colors/font_color = Color(0.11, 0.2, 0.17, 0.85)
 theme_override_font_sizes/font_size = 15
-text = "NARANJAL SURVIVAL  •  ALPHA 0.2.10"
+text = "NARANJAL SURVIVAL  •  ALPHA"
 
 [node name="PromptLabel" type="Label" parent="HUD" unique_id=79910292]
 unique_name_in_owner = true
