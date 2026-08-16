@@ -51,8 +51,10 @@ func _process(_delta: float) -> void:
 func _setup_animations() -> void:
     animation_player = _find_animation_player(ranger_root)
     if animation_player == null:
-        push_warning("KayKit Ranger no contiene AnimationPlayer; no se pueden aplicar animaciones.")
-        return
+        animation_player = AnimationPlayer.new()
+        animation_player.name = "KayKitAnimationPlayer"
+        animation_player.root_node = NodePath("..")
+        ranger_root.add_child(animation_player)
 
     _import_movement_libraries()
 
