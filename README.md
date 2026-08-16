@@ -2,7 +2,7 @@
 
 Survival 3D en **Godot 4** con dirección visual low-poly/colorida inspirada en la claridad de juegos como *Raft*, pero ambientado en un bosque abierto.
 
-## Estado: 0.2.6 alpha
+## Estado: 0.2.7 alpha
 
 **Demo web:** https://javidei.github.io/survival/
 
@@ -34,9 +34,18 @@ El proyecto arranca en `scenes/intro.tscn` antes de cargar el mundo 3D.
 
 La intro se dibuja directamente a la resolución real del viewport y desactiva antialiasing y posicionamiento subpíxel para mantener los bordes de los glifos nítidos.
 
-En la 0.2.6 la composición usa `ONESIZE_.TTF` para **NARANJAL SURVIVAL** y **PULSA PARA CONTINUAR**, y `Commodore Pixelized v1.2.ttf` para **BIENVENIDO A** y la línea inferior de versión.
+En la 0.2.7 la composición usa `ONESIZE_.TTF` para **NARANJAL SURVIVAL** y **PULSA PARA CONTINUAR**, y `Windows Regular.ttf` para **BIENVENIDO A** y la línea inferior de versión. Se usa esta fuente para los textos secundarios porque es la misma fuente UI utilizada por Pixel Adventure en su exportación Web y evita los glifos deformados que estaba mostrando Commodore Pixelized.
 
-Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y `NARANJAL SURVIVAL - PROTOTIPO 0.2.6`. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
+Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y `NARANJAL SURVIVAL - PROTOTIPO 0.2.7`. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
+
+## Correcciones 0.2.7
+
+- las animaciones KayKit ya no se copian directamente entre GLB con rutas de esqueleto incompatibles;
+- las pistas de animación se retargetean en tiempo de ejecución al `Skeleton3D` real del personaje instanciado;
+- se cargan las librerías `Rig_Medium_MovementBasic` y `Rig_Medium_General` para localizar idle, caminar, correr y salto;
+- idle, caminar y correr se fuerzan en bucle;
+- el idle se aplica inmediatamente al iniciar para evitar que jugador y NPC permanezcan en T-pose;
+- `Windows Regular.ttf` sustituye a Commodore Pixelized en `BIENVENIDO A` y en la línea inferior de versión.
 
 ## Correcciones 0.2.6
 
@@ -44,8 +53,7 @@ Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CO
 - zoom con rueda de ratón;
 - `floor_snap` y presión vertical para mantener jugador y NPC sobre el suelo;
 - ajuste adicional de la capa visual KayKit para eliminar el pequeño desfase visible de los pies en idle;
-- posición inicial del jugador más cercana al plano de suelo;
-- tipografía Commodore Pixelized para los textos superior e inferior de la intro.
+- posición inicial del jugador más cercana al plano de suelo.
 
 ## Controles
 
