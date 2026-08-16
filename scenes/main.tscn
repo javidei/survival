@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://db772723eyfwr" path="res://scripts/systems/build_system.gd" id="5_build"]
 [ext_resource type="Script" uid="uid://cd0x7xaj7qyh4" path="res://scripts/world/world_details.gd" id="6_details"]
 [ext_resource type="Script" path="res://scripts/world/asset_world_decorator.gd" id="7_assets"]
+[ext_resource type="Script" path="res://scripts/world/forest_asset_pass.gd" id="8_forest"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.19, 0.38, 0.6, 1)
@@ -36,12 +37,12 @@ shader = SubResource("GroundShader")
 
 [sub_resource type="PlaneMesh" id="GroundMesh"]
 material = SubResource("GroundMaterial")
-size = Vector2(220, 220)
+size = Vector2(160, 160)
 subdivide_width = 32
 subdivide_depth = 32
 
 [sub_resource type="BoxShape3D" id="GroundShape"]
-size = Vector3(220, 0.4, 220)
+size = Vector3(160, 0.4, 160)
 
 [sub_resource type="StyleBoxFlat" id="PanelStyle"]
 content_margin_left = 16.0
@@ -88,6 +89,9 @@ script = ExtResource("6_details")
 [node name="AssetWorldDecorator" type="Node3D" parent="."]
 script = ExtResource("7_assets")
 
+[node name="ForestAssetPass" type="Node3D" parent="."]
+script = ExtResource("8_forest")
+
 [node name="Player" parent="." unique_id=433498072 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.028796911, 0.02, 8.004487)
 
@@ -124,7 +128,7 @@ offset_right = 560.0
 offset_bottom = 118.0
 theme_override_colors/font_color = Color(0.11, 0.2, 0.17, 0.85)
 theme_override_font_sizes/font_size = 15
-text = "NARANJAL SURVIVAL  •  ALPHA 0.2.7"
+text = "NARANJAL SURVIVAL  •  ALPHA 0.2.8"
 
 [node name="PromptLabel" type="Label" parent="HUD" unique_id=79910292]
 unique_name_in_owner = true
