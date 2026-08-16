@@ -106,7 +106,7 @@ offset_right = 710.0
 offset_bottom = 76.0
 theme_override_styles/panel = SubResource("PanelStyle")
 
-[node name="Margin" type="MarginContainer" parent="HUD/TopPanel" unique_id=1826314219]
+[node name="Margin" type="MarginContainer" parent="HUD/TopPanel" unique_id=182265057]
 layout_mode = 2
 
 [node name="InventoryLabel" type="Label" parent="HUD/TopPanel/Margin" unique_id=858900093]
