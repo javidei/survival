@@ -12,14 +12,14 @@ const COL_VERSION := Color("c9c5d0")
 var title_font: FontFile
 var ui_font: Font
 var changing_scene := false
+var build_version := "0.2.10"
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     mouse_filter = Control.MOUSE_FILTER_STOP
     title_font = _pixel_font(TITLE_FONT_SOURCE)
-    # Los textos pequeños usan la fuente de reserva del propio motor.
-    # Así no dependen de TTF externos que puedan importarse mal en Web.
     ui_font = ThemeDB.fallback_font
+    build_version = str(ProjectSettings.get_setting("application/config/version", build_version))
     queue_redraw()
 
 func _process(_delta: float) -> void:
@@ -54,7 +54,15 @@ func _draw() -> void:
     if int(Time.get_ticks_msec() / 520) % 2 == 0:
         _center_text(ui_font, "PULSA PARA CONTINUAR", left, content_width, 465.0 * scale_factor, maxi(16, int(round(27.0 * scale_factor))), COL_GOLD)
 
-    _center_text(ui_font, "NARANJAL SURVIVAL  -  PROTOTIPO 0.2.9", left, content_width, 650.0 * scale_factor, maxi(13, int(round(18.0 * scale_factor))), COL_VERSION)
+    _center_text(
+        ui_font,
+        "NARANJAL SURVIVAL  -  PROTOTIPO %s" % build_version,
+        left,
+        content_width,
+        650.0 * scale_factor,
+        maxi(13, int(round(18.0 * scale_factor))),
+        COL_VERSION
+    )
 
 func _center_text(font: Font, text: String, left: float, width: float, baseline_y: float, font_size: int, color: Color) -> void:
     draw_string(
