@@ -25,21 +25,23 @@ sky = SubResource("Sky")
 tonemap_mode = 2
 fog_enabled = true
 fog_light_color = Color(0.62, 0.73, 0.72, 1)
-fog_density = 0.0045
-fog_height_density = 0.12
+fog_density = 0.0036
+fog_height_density = 0.1
 
-[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
-albedo_color = Color(0.31, 0.55, 0.31, 1)
-roughness = 0.95
+[sub_resource type="Shader" id="GroundShader"]
+code = "shader_type spatial;\nrender_mode diffuse_burley, specular_schlick_ggx;\n\nfloat terrain_hash(vec2 p) {\n    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);\n}\n\nfloat terrain_noise(vec2 p) {\n    vec2 i = floor(p);\n    vec2 f = fract(p);\n    f = f * f * (3.0 - 2.0 * f);\n    float a = terrain_hash(i);\n    float b = terrain_hash(i + vec2(1.0, 0.0));\n    float c = terrain_hash(i + vec2(0.0, 1.0));\n    float d = terrain_hash(i + vec2(1.0, 1.0));\n    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);\n}\n\nvoid fragment() {\n    float fine = terrain_noise(UV * 58.0);\n    float broad = terrain_noise(UV * 12.0 + vec2(4.3, 8.1));\n    float patches = terrain_noise(UV * 25.0 + vec2(12.0, 2.0));\n    vec3 dark_grass = vec3(0.10, 0.25, 0.085);\n    vec3 fresh_grass = vec3(0.26, 0.48, 0.18);\n    vec3 dry_grass = vec3(0.42, 0.39, 0.20);\n    vec3 soil = vec3(0.30, 0.22, 0.13);\n    vec3 color = mix(dark_grass, fresh_grass, fine);\n    color = mix(color, dry_grass, smoothstep(0.66, 0.92, broad) * 0.34);\n    color = mix(color, soil, smoothstep(0.84, 0.98, patches) * 0.22);\n    ALBEDO = color;\n    ROUGHNESS = 0.97;\n}\n"
+
+[sub_resource type="ShaderMaterial" id="GroundMaterial"]
+shader = SubResource("GroundShader")
 
 [sub_resource type="PlaneMesh" id="GroundMesh"]
 material = SubResource("GroundMaterial")
-size = Vector2(140, 140)
-subdivide_width = 18
-subdivide_depth = 18
+size = Vector2(220, 220)
+subdivide_width = 32
+subdivide_depth = 32
 
 [sub_resource type="BoxShape3D" id="GroundShape"]
-size = Vector3(140, 0.4, 140)
+size = Vector3(220, 0.4, 220)
 
 [sub_resource type="StyleBoxFlat" id="PanelStyle"]
 content_margin_left = 16.0
@@ -160,6 +162,5 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 0.72)
 theme_override_font_sizes/font_size = 13
-text = "WASD mover · Shift correr · Espacio saltar · E interactuar
-C fabricar · V receta · F comer · R girar construcción · Clic usar/colocar"
+text = "WASD mover · Shift correr · Espacio saltar · E interactuar\nC fabricar · V receta · F comer · R girar construcción · Clic usar/colocar"
 horizontal_alignment = 2
