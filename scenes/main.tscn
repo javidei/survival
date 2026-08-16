@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://bnvtpuwuk2co7" path="res://scripts/systems/day_night.gd" id="4_daynight"]
 [ext_resource type="Script" uid="uid://db772723eyfwr" path="res://scripts/systems/build_system.gd" id="5_build"]
 [ext_resource type="Script" path="res://scripts/world/world_visual_overhaul.gd" id="6_visual"]
+[ext_resource type="Script" path="res://scripts/world/hybrid_asset_pass.gd" id="7_hybrid"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.16, 0.36, 0.58, 1)
@@ -88,6 +89,9 @@ script = ExtResource("2_world")
 
 [node name="WorldVisualOverhaul" type="Node3D" parent="."]
 script = ExtResource("6_visual")
+
+[node name="HybridAssetPass" type="Node3D" parent="."]
+script = ExtResource("7_hybrid")
 
 [node name="Player" parent="." unique_id=433498072 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.028796911, 0.02, 8.004487)
