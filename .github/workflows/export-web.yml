@@ -31,6 +31,7 @@ jobs:
       - name: Sincronizar fauna Quaternius CC0
         run: |
           set -eu
+          git config --global --add safe.directory "$(pwd)"
           TARGET="assets/third_party/quaternius/wildlife"
           mkdir -p "$TARGET"
 
