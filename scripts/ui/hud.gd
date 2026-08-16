@@ -15,8 +15,10 @@ var hotbar_slots: Array = []
 var recipe_label: Label
 var notification_label: Label
 var notification_time := 0.0
+var build_version := "0.2.10"
 
 func _ready() -> void:
+    build_version = str(ProjectSettings.get_setting("application/config/version", build_version))
     _build_extra_labels()
     GameState.inventory_changed.connect(_on_inventory_changed)
     GameState.stats_changed.connect(_on_stats_changed)
@@ -36,7 +38,7 @@ func _process(delta: float) -> void:
     var clock_text := "Día 1 · 08:00"
     if is_instance_valid(day_night) and day_night.has_method("get_display_time"):
         clock_text = day_night.get_display_time()
-    status_label.text = "NARANJAL SURVIVAL  •  ALPHA 0.2.9  •  %s" % clock_text
+    status_label.text = "NARANJAL SURVIVAL  •  ALPHA %s  •  %s" % [build_version, clock_text]
     if notification_time > 0.0:
         notification_time -= delta
         notification_label.visible = true
