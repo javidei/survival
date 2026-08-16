@@ -6,11 +6,11 @@ const WILDLIFE_SCRIPT = preload("res://scripts/world/wildlife.gd")
 const WATER_SOURCE_SCRIPT = preload("res://scripts/world/water_source.gd")
 
 @export var seed_value := 10493
-@export var world_radius := 58.0
-@export var tree_count := 115
-@export var rock_count := 46
-@export var bush_count := 70
-@export var flower_count := 55
+@export var world_radius := 92.0
+@export var tree_count := 165
+@export var rock_count := 68
+@export var bush_count := 110
+@export var flower_count := 90
 
 var rng := RandomNumberGenerator.new()
 var material_cache: Dictionary = {}
@@ -34,7 +34,7 @@ func _build_forest() -> void:
         _make_flower(_random_ground_position(4.0))
 
 func _random_ground_position(clear_radius: float) -> Vector3:
-    for _attempt in range(20):
+    for _attempt in range(24):
         var angle := rng.randf_range(0.0, TAU)
         var distance := sqrt(rng.randf()) * world_radius
         var p := Vector3(cos(angle) * distance, 0.0, sin(angle) * distance)
@@ -154,6 +154,7 @@ func _make_flower(position: Vector3) -> void:
 
 func _build_cabin(position: Vector3) -> void:
     var cabin := Node3D.new()
+    cabin.name = "ForestCabin"
     cabin.position = position
     cabin.rotation.y = deg_to_rad(28.0)
     add_child(cabin)
@@ -182,6 +183,16 @@ func _build_cabin(position: Vector3) -> void:
     window.size = Vector3(1.4, 1.15, 0.12)
     _make_mesh(window, glow_mat, Vector3(2.2, 2.15, 2.84), Vector3.ONE, cabin)
 
+    var collision_body := StaticBody3D.new()
+    collision_body.name = "CabinCollision"
+    cabin.add_child(collision_body)
+    var collision := CollisionShape3D.new()
+    var cabin_shape := BoxShape3D.new()
+    cabin_shape.size = Vector3(7.5, 3.7, 5.5)
+    collision.shape = cabin_shape
+    collision.position = Vector3(0, 1.85, 0)
+    collision_body.add_child(collision)
+
     var light := OmniLight3D.new()
     light.position = Vector3(2.2, 2.0, 3.3)
     light.light_color = Color("#ffad55")
@@ -196,10 +207,10 @@ func _build_water_source(position: Vector3) -> void:
     add_child(source)
 
     var water_mesh := CylinderMesh.new()
-    water_mesh.top_radius = 3.2
-    water_mesh.bottom_radius = 3.2
+    water_mesh.top_radius = 4.1
+    water_mesh.bottom_radius = 4.1
     water_mesh.height = 0.08
-    water_mesh.radial_segments = 28
+    water_mesh.radial_segments = 32
     var water_mat := StandardMaterial3D.new()
     water_mat.albedo_color = Color(0.24, 0.62, 0.78, 0.78)
     water_mat.metallic = 0.12
@@ -208,14 +219,14 @@ func _build_water_source(position: Vector3) -> void:
 
     var collision := CollisionShape3D.new()
     var shape := CylinderShape3D.new()
-    shape.radius = 3.2
+    shape.radius = 4.1
     shape.height = 0.5
     collision.shape = shape
     source.add_child(collision)
 
-    for i in range(16):
-        var angle := TAU * float(i) / 16.0
-        var rock_pos := Vector3(cos(angle) * 3.4, 0.18, sin(angle) * 3.4)
+    for i in range(20):
+        var angle := TAU * float(i) / 20.0
+        var rock_pos := Vector3(cos(angle) * 4.35, 0.18, sin(angle) * 4.35)
         var mesh := SphereMesh.new()
         mesh.radius = 0.34
         mesh.height = 0.55
@@ -224,27 +235,28 @@ func _build_water_source(position: Vector3) -> void:
         _make_mesh(mesh, _material("pond_rock", Color("#717d73")), rock_pos, Vector3(1.0, 0.65, 0.9), source)
 
 func _spawn_resources() -> void:
-    for i in range(15):
+    for i in range(24):
         _create_pickup("wood", _random_ground_position(7.0), Color("#b77a44"), Vector3(0.22, 0.22, 0.8))
-    for i in range(10):
-        _create_pickup("stone", _random_ground_position(7.0), Color("#9da49f"), Vector3(0.42, 0.32, 0.48))
     for i in range(18):
+        _create_pickup("stone", _random_ground_position(7.0), Color("#9da49f"), Vector3(0.42, 0.32, 0.48))
+    for i in range(28):
         _create_pickup("fiber", _random_ground_position(7.0), Color("#82bd55"), Vector3(0.35, 0.52, 0.35))
-    for i in range(14):
+    for i in range(22):
         _create_pickup("berry", _random_ground_position(7.0), Color("#c34b69"), Vector3(0.25, 0.25, 0.25))
 
 func _spawn_wildlife() -> void:
-    for i in range(7):
-        _create_wildlife(false, _random_ground_position(16.0))
-    for i in range(4):
-        _create_wildlife(true, _random_ground_position(24.0))
+    for i in range(12):
+        _create_wildlife(false, _random_ground_position(18.0))
+    for i in range(6):
+        _create_wildlife(true, _random_ground_position(28.0))
 
 func _create_wildlife(hostile: bool, position: Vector3) -> void:
     var animal := CharacterBody3D.new()
     animal.set_script(WILDLIFE_SCRIPT)
     animal.set("hostile", hostile)
-    animal.set("move_speed", 2.8 if hostile else 2.0)
-    animal.set("health", 4 if hostile else 3)
+    animal.set("move_speed", 3.0 if hostile else 2.4)
+    animal.set("health", 5 if hostile else 3)
+    animal.set("detect_radius", 12.0 if hostile else 10.0)
     animal.set("meat_drops", 3 if hostile else 2)
     animal.position = position + Vector3(0, 0.1, 0)
     add_child(animal)
