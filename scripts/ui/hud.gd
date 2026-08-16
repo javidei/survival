@@ -32,7 +32,7 @@ func _process(delta: float) -> void:
     var clock_text := "Día 1 · 08:00"
     if is_instance_valid(day_night) and day_night.has_method("get_display_time"):
         clock_text = day_night.get_display_time()
-    status_label.text = "NARANJAL SURVIVAL  •  ALPHA 0.2.7  •  %s" % clock_text
+    status_label.text = "NARANJAL SURVIVAL  •  ALPHA 0.2.8  •  %s" % clock_text
     if notification_time > 0.0:
         notification_time -= delta
         notification_label.visible = true
