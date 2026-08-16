@@ -38,6 +38,18 @@ jobs:
             mv "/root/.local/share/godot/export_templates/${GODOT_VERSION}.stable" "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
           fi
 
+      - name: Importar proyecto y assets 3D
+        run: |
+          set +e
+          godot --headless --editor --path . --quit > import.log 2>&1
+          STATUS=$?
+          set -e
+          cat import.log
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error title=Godot import::La importación del proyecto terminó con código ${STATUS}."
+            exit 1
+          fi
+
       - name: Validar GDScript crítico
         run: |
           set +e
@@ -45,24 +57,12 @@ jobs:
           STATUS=$?
           set -e
           cat script-check.log
-          if [ "$STATUS" -ne 0 ]; then
-            DETAIL="$(grep -Ei "SCRIPT ERROR:|Parse Error:|ERROR:" script-check.log | head -n 12 | tr '\n' ' ' || true)"
+          if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Failed to load script" script-check.log; then
+            DETAIL="$(grep -Ei "SCRIPT ERROR:|Parse Error:|ERROR:|Failed to load script" script-check.log | head -n 12 | tr '\n' ' ' || true)"
             if [ -z "$DETAIL" ]; then
               DETAIL="world_visual_overhaul.gd no supera --check-only (código ${STATUS})."
             fi
             echo "::error title=GDScript check::${DETAIL}"
-            exit 1
-          fi
-
-      - name: Importar proyecto y validar GDScript
-        run: |
-          set +e
-          godot --headless --editor --path . --quit > import.log 2>&1
-          STATUS=$?
-          set -e
-          cat import.log
-          if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Failed to load script" import.log; then
-            echo "La importación contiene errores; no se publicará."
             exit 1
           fi
 
@@ -86,7 +86,6 @@ jobs:
               ERROR_LINE="Godot terminó la exportación Web con código ${STATUS}; revisar export.log."
             fi
             echo "::error title=Godot Web export::${ERROR_LINE}"
-            echo "La exportación web ha fallado."
             exit 1
           fi
 
