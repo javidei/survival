@@ -32,6 +32,7 @@ jobs:
         run: |
           set -eu
           TARGET="assets/third_party/quaternius/wildlife"
+          BASE_URL="https://raw.githubusercontent.com/StateDev08/War-of-the-Kindom-Mobile/${WILDLIFE_SOURCE_COMMIT}/client/assets/models/quaternius/animals"
           mkdir -p "$TARGET"
 
           if [ -s "$TARGET/deer.glb" ] && [ -s "$TARGET/boar.glb" ] && [ -s "$TARGET/boar_Atlas.png" ]; then
@@ -39,23 +40,13 @@ jobs:
             exit 0
           fi
 
-          SOURCE_DIR="$(mktemp -d)"
-          git init -q "$SOURCE_DIR"
-          git -C "$SOURCE_DIR" remote add origin https://github.com/StateDev08/War-of-the-Kindom-Mobile.git
-          git -C "$SOURCE_DIR" config core.sparseCheckout true
-          mkdir -p "$SOURCE_DIR/.git/info"
-          printf '%s\n' 'client/assets/models/quaternius/animals/' > "$SOURCE_DIR/.git/info/sparse-checkout"
-          git -C "$SOURCE_DIR" fetch --depth 1 --filter=blob:none origin "$WILDLIFE_SOURCE_COMMIT"
-          git -C "$SOURCE_DIR" checkout -q --detach FETCH_HEAD
+          curl -fL --retry 3 "$BASE_URL/deer.glb" -o "$TARGET/deer.glb"
+          curl -fL --retry 3 "$BASE_URL/boar.glb" -o "$TARGET/boar.glb"
+          curl -fL --retry 3 "$BASE_URL/boar_Atlas.png" -o "$TARGET/boar_Atlas.png"
 
-          SOURCE_PATH="$SOURCE_DIR/client/assets/models/quaternius/animals"
-          test "$(git -C "$SOURCE_DIR" rev-parse "$WILDLIFE_SOURCE_COMMIT:client/assets/models/quaternius/animals/deer.glb")" = "08d273334d1e1f4f21f9905251ea82a6d8bae1fe"
-          test "$(git -C "$SOURCE_DIR" rev-parse "$WILDLIFE_SOURCE_COMMIT:client/assets/models/quaternius/animals/boar.glb")" = "5f97beed14eb0db209c89b5423a1609d61cf662a"
-          test "$(git -C "$SOURCE_DIR" rev-parse "$WILDLIFE_SOURCE_COMMIT:client/assets/models/quaternius/animals/boar_Atlas.png")" = "1ba36d43584728349c9785c62020e226fb602590"
-
-          cp "$SOURCE_PATH/deer.glb" "$TARGET/deer.glb"
-          cp "$SOURCE_PATH/boar.glb" "$TARGET/boar.glb"
-          cp "$SOURCE_PATH/boar_Atlas.png" "$TARGET/boar_Atlas.png"
+          test "$(git hash-object "$TARGET/deer.glb")" = "08d273334d1e1f4f21f9905251ea82a6d8bae1fe"
+          test "$(git hash-object "$TARGET/boar.glb")" = "5f97beed14eb0db209c89b5423a1609d61cf662a"
+          test "$(git hash-object "$TARGET/boar_Atlas.png")" = "1ba36d43584728349c9785c62020e226fb602590"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
