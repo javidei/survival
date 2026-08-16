@@ -50,19 +50,19 @@ jobs:
             exit 1
           fi
 
-      - name: Validar GDScript crítico
+      - name: Validar escena principal
         run: |
           set +e
-          godot --headless --path . --script res://scripts/world/world_visual_overhaul.gd --check-only > script-check.log 2>&1
+          godot --headless --path . --quit-after 2 res://scenes/main.tscn > scene-check.log 2>&1
           STATUS=$?
           set -e
-          cat script-check.log
-          if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Failed to load script" script-check.log; then
-            DETAIL="$(grep -Ei "SCRIPT ERROR:|Parse Error:|ERROR:|Failed to load script" script-check.log | head -n 12 | tr '\n' ' ' || true)"
+          cat scene-check.log
+          if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Compile Error:|Failed to load script" scene-check.log; then
+            DETAIL="$(grep -Ei "SCRIPT ERROR:|Parse Error:|Compile Error:|ERROR:|Failed to load script" scene-check.log | head -n 14 | tr '\n' ' ' || true)"
             if [ -z "$DETAIL" ]; then
-              DETAIL="world_visual_overhaul.gd no supera --check-only (código ${STATUS})."
+              DETAIL="La escena principal no supera la validación (código ${STATUS})."
             fi
-            echo "::error title=GDScript check::${DETAIL}"
+            echo "::error title=Godot scene check::${DETAIL}"
             exit 1
           fi
 
@@ -76,12 +76,12 @@ jobs:
           set -e
           cat export.log
 
-          if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Failed to load script" export.log; then
-            PARSE_DETAIL="$(grep -Ei "SCRIPT ERROR:|Parse Error:" export.log | head -n 12 | tr '\n' ' ' || true)"
+          if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Compile Error:|Failed to load script" export.log; then
+            PARSE_DETAIL="$(grep -Ei "SCRIPT ERROR:|Parse Error:|Compile Error:" export.log | head -n 14 | tr '\n' ' ' || true)"
             if [ -n "$PARSE_DETAIL" ]; then
-              echo "::error title=Godot parse detail::${PARSE_DETAIL}"
+              echo "::error title=Godot compile detail::${PARSE_DETAIL}"
             fi
-            ERROR_LINE="$(grep -Ei "ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load script|Failed|Cannot|Could not" export.log | tail -n 1 || true)"
+            ERROR_LINE="$(grep -Ei "ERROR:|SCRIPT ERROR:|Parse Error:|Compile Error:|Failed to load script|Failed|Cannot|Could not" export.log | tail -n 1 || true)"
             if [ -z "$ERROR_LINE" ]; then
               ERROR_LINE="Godot terminó la exportación Web con código ${STATUS}; revisar export.log."
             fi
