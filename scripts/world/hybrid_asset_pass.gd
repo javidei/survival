@@ -19,11 +19,17 @@ const NPC_ROGUE_HOODED = preload("res://assets/third_party/kaykit/adventurers/ch
 
 const MARKET_CENTER := Vector3(27.0, 0.0, -37.0)
 const WINDMILL_POSITION := Vector3(53.0, 0.0, -53.0)
+const TRAILHEAD_CENTER := Vector3(0.0, 0.0, -29.6)
+const ROUTE_A_START := Vector3(0.0, 0.0, -30.0)
+const ROUTE_A_END := Vector3(22.0, 0.0, -35.5)
+const ROUTE_B_START := Vector3(31.5, 0.0, -39.0)
+const ROUTE_B_END := Vector3(49.0, 0.0, -51.0)
 
 func _ready() -> void:
     call_deferred("_build_hybrid_asset_layer")
 
 func _build_hybrid_asset_layer() -> void:
+    _clear_grass_around_prefabs()
     _build_prefab_terrain()
     _build_prefab_routes()
     _build_market_props()
@@ -41,10 +47,47 @@ func _spawn_asset(scene: PackedScene, position: Vector3, yaw := 0.0, scale_value
     instance.scale = scale_value
     return instance
 
+func _clear_grass_around_prefabs() -> void:
+    var grass := get_node_or_null("../WorldVisualOverhaul/GrassField") as MultiMeshInstance3D
+    if grass == null or grass.multimesh == null:
+        return
+
+    var multi_mesh := grass.multimesh
+    for i in range(multi_mesh.instance_count):
+        var transform := multi_mesh.get_instance_transform(i)
+        var p := transform.origin
+        var should_clear := false
+
+        if p.distance_to(TRAILHEAD_CENTER) < 5.0:
+            should_clear = true
+        elif p.distance_to(MARKET_CENTER) < 8.2:
+            should_clear = true
+        elif p.distance_to(WINDMILL_POSITION) < 5.8:
+            should_clear = true
+        elif _distance_to_segment_xz(p, ROUTE_A_START, ROUTE_A_END) < 1.65:
+            should_clear = true
+        elif _distance_to_segment_xz(p, ROUTE_B_START, ROUTE_B_END) < 1.65:
+            should_clear = true
+
+        if should_clear:
+            transform.origin.y = -2.0
+            multi_mesh.set_instance_transform(i, transform)
+
+func _distance_to_segment_xz(point: Vector3, start: Vector3, finish: Vector3) -> float:
+    var p := Vector2(point.x, point.z)
+    var a := Vector2(start.x, start.z)
+    var b := Vector2(finish.x, finish.z)
+    var segment := b - a
+    var length_squared := segment.length_squared()
+    if length_squared <= 0.0001:
+        return p.distance_to(a)
+    var t := clampf((p - a).dot(segment) / length_squared, 0.0, 1.0)
+    return p.distance_to(a + segment * t)
+
 func _build_prefab_terrain() -> void:
     var trailhead := Node3D.new()
     trailhead.name = "PrefabTerrainTrailhead"
-    trailhead.position = Vector3(0.0, 0.0, -29.6)
+    trailhead.position = TRAILHEAD_CENTER
     add_child(trailhead)
 
     for x in range(-1, 2):
@@ -73,8 +116,8 @@ func _build_prefab_terrain() -> void:
             )
 
 func _build_prefab_routes() -> void:
-    _build_road_between(Vector3(0.0, 0.065, -30.0), MARKET_CENTER + Vector3(-5.0, 0.065, 1.5), 18)
-    _build_road_between(MARKET_CENTER + Vector3(4.5, 0.065, -2.0), WINDMILL_POSITION + Vector3(-4.0, 0.065, 2.0), 15)
+    _build_road_between(ROUTE_A_START + Vector3(0.0, 0.065, 0.0), ROUTE_A_END + Vector3(0.0, 0.065, 0.0), 18)
+    _build_road_between(ROUTE_B_START + Vector3(0.0, 0.065, 0.0), ROUTE_B_END + Vector3(0.0, 0.065, 0.0), 15)
 
 func _build_road_between(start: Vector3, finish: Vector3, segment_count: int) -> void:
     if segment_count < 2:
