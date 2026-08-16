@@ -1,26 +1,25 @@
 extends Control
 
 const TITLE_FONT_SOURCE: FontFile = preload("res://assets/fonts/ONESIZE_.TTF")
-const UI_FONT_SOURCE: FontFile = preload("res://assets/fonts/Windows Regular.ttf")
 const GAME_SCENE := "res://scenes/main.tscn"
 
 const BASE_SIZE := Vector2(1280.0, 720.0)
-const COL_TITLE := Color("f3e7c8")
-const COL_GOLD := Color("e5b96d")
-const COL_TOP := Color("c7becd")
-const COL_VERSION := Color("918b9d")
+const COL_TITLE := Color("f6ead0")
+const COL_GOLD := Color("efbd62")
+const COL_TOP := Color("f0edf4")
+const COL_VERSION := Color("c9c5d0")
 
 var title_font: FontFile
-var ui_font: FontFile
+var ui_font: Font
 var changing_scene := false
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     mouse_filter = Control.MOUSE_FILTER_STOP
     title_font = _pixel_font(TITLE_FONT_SOURCE)
-    # Windows Regular ya funciona correctamente en la exportación Web de Pixel Adventure.
-    # No forzamos su rasterizado a 1 bit porque en Web podía desaparecer a tamaños pequeños.
-    ui_font = UI_FONT_SOURCE
+    # Los textos pequeños usan la fuente de reserva del propio motor.
+    # Así no dependen de TTF externos que puedan importarse mal en Web.
+    ui_font = ThemeDB.fallback_font
     queue_redraw()
 
 func _process(_delta: float) -> void:
@@ -38,7 +37,7 @@ func _pixel_font(source: FontFile) -> FontFile:
     font.generate_mipmaps = false
     font.multichannel_signed_distance_field = false
     font.oversampling = 1.0
-    font.allow_system_fallback = false
+    font.allow_system_fallback = true
     return font
 
 func _draw() -> void:
@@ -49,13 +48,13 @@ func _draw() -> void:
     var content_width: float = minf(size.x, BASE_SIZE.x * scale_factor)
     var left: float = floor((size.x - content_width) * 0.5)
 
-    _center_text(ui_font, "BIENVENIDO A", left, content_width, 150.0 * scale_factor, maxi(14, int(round(30.0 * scale_factor))), COL_TOP)
+    _center_text(ui_font, "BIENVENIDO A", left, content_width, 145.0 * scale_factor, maxi(16, int(round(28.0 * scale_factor))), COL_TOP)
     _center_text(title_font, "NARANJAL SURVIVAL", left, content_width, 315.0 * scale_factor, maxi(24, int(round(64.0 * scale_factor))), COL_TITLE)
 
     if int(Time.get_ticks_msec() / 520) % 2 == 0:
-        _center_text(title_font, "PULSA PARA CONTINUAR", left, content_width, 465.0 * scale_factor, maxi(14, int(round(32.0 * scale_factor))), COL_GOLD)
+        _center_text(ui_font, "PULSA PARA CONTINUAR", left, content_width, 465.0 * scale_factor, maxi(16, int(round(27.0 * scale_factor))), COL_GOLD)
 
-    _center_text(ui_font, "NARANJAL SURVIVAL - PROTOTIPO 0.2.8", left, content_width, 655.0 * scale_factor, maxi(12, int(round(20.0 * scale_factor))), COL_VERSION)
+    _center_text(ui_font, "NARANJAL SURVIVAL  -  PROTOTIPO 0.2.9", left, content_width, 650.0 * scale_factor, maxi(13, int(round(18.0 * scale_factor))), COL_VERSION)
 
 func _center_text(font: Font, text: String, left: float, width: float, baseline_y: float, font_size: int, color: Color) -> void:
     draw_string(
