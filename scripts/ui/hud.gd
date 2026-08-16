@@ -11,7 +11,7 @@ const HOTBAR_SLOT_SCRIPT = preload("res://scripts/ui/hotbar_slot.gd")
 var survival_label: Label
 var hotbar_container: HBoxContainer
 var hotbar_name_label: Label
-var hotbar_slots: Array[Control] = []
+var hotbar_slots: Array = []
 var recipe_label: Label
 var notification_label: Label
 var notification_time := 0.0
@@ -76,7 +76,7 @@ func _build_extra_labels() -> void:
 
     for i in range(GameState.HOTBAR.size()):
         var item_id: String = GameState.HOTBAR[i]
-        var slot: Control = HOTBAR_SLOT_SCRIPT.new()
+        var slot = HOTBAR_SLOT_SCRIPT.new()
         slot.configure(i, item_id, GameState.get_item_name(item_id))
         hotbar_container.add_child(slot)
         hotbar_slots.append(slot)
