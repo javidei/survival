@@ -12,7 +12,7 @@ const COL_VERSION := Color("c9c5d0")
 var title_font: FontFile
 var ui_font: Font
 var changing_scene := false
-var build_version := "0.2.10"
+var build_version := "0.2.11"
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
