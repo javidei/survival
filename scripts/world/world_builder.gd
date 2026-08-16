@@ -3,6 +3,8 @@ extends Node3D
 const PICKUP_SCRIPT = preload("res://scripts/world/resource_pickup.gd")
 const WILDLIFE_SCRIPT = preload("res://scripts/world/wildlife.gd")
 const WATER_SOURCE_SCRIPT = preload("res://scripts/world/water_source.gd")
+const DEER_MODEL = preload("res://assets/third_party/quaternius/wildlife/deer.glb")
+const BOAR_MODEL = preload("res://assets/third_party/quaternius/wildlife/boar.glb")
 
 @export var seed_value := 10493
 @export var world_radius := 68.0
@@ -101,8 +103,12 @@ func _spawn_wildlife() -> void:
 
 func _create_wildlife(hostile: bool, position: Vector3) -> void:
     var animal := CharacterBody3D.new()
+    animal.name = "Boar" if hostile else "Deer"
     animal.set_script(WILDLIFE_SCRIPT)
     animal.set("hostile", hostile)
+    animal.set("model_scene", BOAR_MODEL if hostile else DEER_MODEL)
+    animal.set("target_visual_height", 0.88 if hostile else 1.48)
+    animal.set("model_yaw_offset", PI)
     animal.set("move_speed", 3.0 if hostile else 2.4)
     animal.set("health", 5 if hostile else 3)
     animal.set("detect_radius", 12.0 if hostile else 10.0)

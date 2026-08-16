@@ -5,8 +5,8 @@
 [ext_resource type="Script" path="res://scripts/player/kaykit_character_animator.gd" id="3_animator"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
-radius = 0.42
-height = 1.8
+radius = 0.36
+height = 1.52
 
 [sub_resource type="SphereShape3D" id="InteractionShape"]
 radius = 2.4
@@ -15,17 +15,18 @@ radius = 2.4
 script = ExtResource("1_player")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.9, 0)
+position = Vector3(0, 0.76, 0)
 shape = SubResource("CapsuleShape_player")
 
 [node name="Visual" type="Node3D" parent="."]
 rotation = Vector3(0, 3.14159265, 0)
+scale = Vector3(0.84, 0.84, 0.84)
 script = ExtResource("3_animator")
 
 [node name="Ranger" parent="Visual" instance=ExtResource("2_ranger")]
 
 [node name="CameraPivot" type="Node3D" parent="."]
-position = Vector3(0, 1.55, 0)
+position = Vector3(0, 1.32, 0)
 rotation = Vector3(-0.20944, 0, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
@@ -41,5 +42,5 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
-position = Vector3(0, 0.9, 0)
+position = Vector3(0, 0.76, 0)
 shape = SubResource("InteractionShape")

@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 const KAYKIT_ANIMATOR = preload("res://scripts/player/kaykit_character_animator.gd")
+const HUMAN_VISUAL_SCALE := 0.84
 
 @export var model_scene: PackedScene
 @export var npc_name := "Habitante"
@@ -30,8 +31,6 @@ func _ready() -> void:
     _pick_target()
 
 func _physics_process(delta: float) -> void:
-    # Mantener una presión descendente mínima evita que un NPC quede separado del suelo
-    # al pasar de caminar a idle sobre juntas o pequeños desniveles.
     if is_on_floor():
         velocity.y = -ground_stick_velocity
     else:
@@ -67,10 +66,10 @@ func _pick_target() -> void:
 func _create_collision() -> void:
     var collision := CollisionShape3D.new()
     var shape := CapsuleShape3D.new()
-    shape.radius = 0.34
-    shape.height = 1.72
+    shape.radius = 0.30
+    shape.height = 1.46
     collision.shape = shape
-    collision.position = Vector3(0.0, 0.86, 0.0)
+    collision.position = Vector3(0.0, 0.73, 0.0)
     add_child(collision)
 
 func _build_visual() -> void:
@@ -84,6 +83,7 @@ func _build_visual() -> void:
     var visual := Node3D.new()
     visual.name = "Visual"
     visual.rotation.y = PI
+    visual.scale = Vector3.ONE * HUMAN_VISUAL_SCALE
     visual.set_script(KAYKIT_ANIMATOR)
 
     character.name = "Ranger"

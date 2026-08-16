@@ -8,14 +8,18 @@ const DROP_SCRIPT = preload("res://scripts/world/physical_drop.gd")
 @export var detect_radius := 9.0
 @export var attack_damage := 8.0
 @export var meat_drops := 2
+@export var model_scene: PackedScene
+@export var target_visual_height := 1.2
+@export var model_yaw_offset := PI
 
 var target: Node3D = null
 var wander_direction := Vector3.ZERO
 var wander_timer := 0.0
 var attack_cooldown := 0.0
+var animation_lock_left := 0.0
 var gravity := 18.0
-var walk_phase := 0.0
-var leg_pivots: Array[Node3D] = []
+var animation_player: AnimationPlayer = null
+var active_animation := ""
 
 func _ready() -> void:
     add_to_group("damageable")
@@ -23,16 +27,22 @@ func _ready() -> void:
     add_to_group("wildlife")
     collision_layer = 2
     collision_mask = 1
-    if hostile:
-        _build_boar_visual()
-    else:
-        _build_deer_visual()
+    floor_snap_length = 0.45
+    floor_stop_on_slope = true
+    _build_collision()
+    if not _build_prefab_visual():
+        _build_fallback_visual()
     _pick_wander_direction()
+    _play_animation_matching(["idle", "stand"])
 
 func _physics_process(delta: float) -> void:
-    if not is_on_floor():
+    if is_on_floor():
+        velocity.y = -1.1
+    else:
         velocity.y -= gravity * delta
+
     attack_cooldown = maxf(0.0, attack_cooldown - delta)
+    animation_lock_left = maxf(0.0, animation_lock_left - delta)
     wander_timer -= delta
     if target == null or not is_instance_valid(target):
         target = get_tree().get_first_node_in_group("player") as Node3D
@@ -51,6 +61,8 @@ func _physics_process(delta: float) -> void:
                 GameState.damage(attack_damage)
                 GameState.notification.emit("Te ha atacado un jabalí")
                 attack_cooldown = 1.25
+                animation_lock_left = 0.45
+                _play_animation_matching(["attack", "bite", "headbutt"])
         elif not hostile and player_distance <= detect_radius * 0.82:
             desired = -planar_to_player.normalized()
             current_speed = move_speed * 1.55
@@ -64,8 +76,11 @@ func _physics_process(delta: float) -> void:
     velocity.z = desired.z * current_speed
     if desired.length_squared() > 0.05:
         rotation.y = lerp_angle(rotation.y, atan2(-desired.x, -desired.z), delta * 5.0)
+
     move_and_slide()
-    _animate_legs(delta)
+    if velocity.y <= 0.0 and not is_on_floor():
+        apply_floor_snap()
+    _update_model_animation()
 
 func _get_wander_direction() -> Vector3:
     if wander_timer <= 0.0:
@@ -77,25 +92,136 @@ func _pick_wander_direction() -> void:
     var angle := randf_range(0.0, TAU)
     wander_direction = Vector3(cos(angle), 0.0, sin(angle))
 
-func _animate_legs(delta: float) -> void:
-    if leg_pivots.is_empty():
+func _build_collision() -> void:
+    var collision := CollisionShape3D.new()
+    var shape := CapsuleShape3D.new()
+    if hostile:
+        shape.radius = 0.34
+        shape.height = 0.78
+        collision.position = Vector3(0.0, 0.39, 0.0)
+    else:
+        shape.radius = 0.30
+        shape.height = 1.24
+        collision.position = Vector3(0.0, 0.62, 0.0)
+    collision.shape = shape
+    add_child(collision)
+
+func _build_prefab_visual() -> bool:
+    if model_scene == null:
+        return false
+    var model := model_scene.instantiate() as Node3D
+    if model == null:
+        return false
+
+    var visual := Node3D.new()
+    visual.name = "AnimalVisual"
+    add_child(visual)
+    visual.add_child(model)
+    model.rotation.y = model_yaw_offset
+    _fit_prefab_to_height(model, target_visual_height)
+    animation_player = _find_animation_player(model)
+    return true
+
+func _fit_prefab_to_height(root: Node3D, desired_height: float) -> void:
+    var min_bounds := Vector3(INF, INF, INF)
+    var max_bounds := Vector3(-INF, -INF, -INF)
+    var found_mesh := false
+    var mesh_nodes: Array[Node] = []
+    if root is MeshInstance3D:
+        mesh_nodes.append(root)
+    mesh_nodes.append_array(root.find_children("*", "MeshInstance3D", true, false))
+
+    for node in mesh_nodes:
+        var mesh_instance := node as MeshInstance3D
+        if mesh_instance == null or mesh_instance.mesh == null:
+            continue
+        var aabb := mesh_instance.get_aabb()
+        for x_index in range(2):
+            for y_index in range(2):
+                for z_index in range(2):
+                    var corner := Vector3(
+                        aabb.position.x + aabb.size.x * float(x_index),
+                        aabb.position.y + aabb.size.y * float(y_index),
+                        aabb.position.z + aabb.size.z * float(z_index)
+                    )
+                    var local_corner := root.to_local(mesh_instance.to_global(corner))
+                    min_bounds.x = minf(min_bounds.x, local_corner.x)
+                    min_bounds.y = minf(min_bounds.y, local_corner.y)
+                    min_bounds.z = minf(min_bounds.z, local_corner.z)
+                    max_bounds.x = maxf(max_bounds.x, local_corner.x)
+                    max_bounds.y = maxf(max_bounds.y, local_corner.y)
+                    max_bounds.z = maxf(max_bounds.z, local_corner.z)
+                    found_mesh = true
+
+    if not found_mesh:
+        return
+    var source_height := max_bounds.y - min_bounds.y
+    if source_height <= 0.001:
+        return
+
+    var scale_factor := desired_height / source_height
+    var center_x := (min_bounds.x + max_bounds.x) * 0.5
+    var center_z := (min_bounds.z + max_bounds.z) * 0.5
+    root.scale *= scale_factor
+    root.position = Vector3(-center_x * scale_factor, -min_bounds.y * scale_factor + 0.02, -center_z * scale_factor)
+
+func _find_animation_player(root: Node) -> AnimationPlayer:
+    if root is AnimationPlayer:
+        return root as AnimationPlayer
+    var players: Array[Node] = root.find_children("*", "AnimationPlayer", true, false)
+    if players.is_empty():
+        return null
+    return players[0] as AnimationPlayer
+
+func _update_model_animation() -> void:
+    if animation_player == null or animation_lock_left > 0.0:
         return
     var horizontal_speed := Vector2(velocity.x, velocity.z).length()
-    var moving := horizontal_speed > 0.2 and is_on_floor()
-    if moving:
-        walk_phase += delta * clamp(horizontal_speed * 3.0, 5.5, 13.0)
-    for i in range(leg_pivots.size()):
-        var target_angle := 0.0
-        if moving:
-            var phase_offset := 0.0 if i % 2 == 0 else PI
-            target_angle = sin(walk_phase + phase_offset) * 0.42
-        leg_pivots[i].rotation.x = lerp(leg_pivots[i].rotation.x, target_angle, delta * 10.0)
+    if horizontal_speed > move_speed * 1.25:
+        _play_animation_matching(["run", "gallop", "sprint", "walk"])
+    elif horizontal_speed > 0.15:
+        _play_animation_matching(["walk", "run", "gallop"])
+    else:
+        _play_animation_matching(["idle", "stand"])
+
+func _play_animation_matching(candidates: Array) -> void:
+    if animation_player == null:
+        return
+    var selected := ""
+    var animation_names := animation_player.get_animation_list()
+    for candidate in candidates:
+        var needle := String(candidate).to_lower()
+        for animation_name in animation_names:
+            var animation_text := String(animation_name)
+            if animation_text.to_lower().contains(needle):
+                selected = animation_text
+                break
+        if not selected.is_empty():
+            break
+
+    if selected.is_empty() or selected == active_animation:
+        return
+    animation_player.play(selected)
+    active_animation = selected
+
+func _build_fallback_visual() -> void:
+    var mesh_instance := MeshInstance3D.new()
+    var mesh := CapsuleMesh.new()
+    mesh.radius = 0.34 if hostile else 0.30
+    mesh.height = 0.78 if hostile else 1.24
+    mesh_instance.mesh = mesh
+    mesh_instance.position = Vector3(0.0, 0.39 if hostile else 0.62, 0.0)
+    var material := StandardMaterial3D.new()
+    material.albedo_color = Color("#4b3328") if hostile else Color("#9b7048")
+    material.roughness = 0.94
+    mesh_instance.material_override = material
+    add_child(mesh_instance)
 
 func take_hit(tool_id: String, attacker: Node) -> void:
     var damage := 2 if tool_id == "spear" and GameState.get_amount("spear") > 0 else 1
     health -= damage
     if is_instance_valid(attacker):
-        var away: Vector3 = global_position - attacker.global_position
+        var away: Vector3 = global_position - (attacker as Node3D).global_position
         var planar_away := Vector3(away.x, 0.0, away.z).normalized()
         velocity += planar_away * 4.0
         if not hostile:
@@ -118,200 +244,3 @@ func _die() -> void:
 
 func get_interaction_text() -> String:
     return "Jabalí hostil" if hostile else "Ciervo"
-
-func _material(color: Color, roughness := 0.94) -> StandardMaterial3D:
-    var material := StandardMaterial3D.new()
-    material.albedo_color = color
-    material.roughness = roughness
-    return material
-
-func _part(mesh: Mesh, material: Material, position: Vector3, scale_value := Vector3.ONE, rotation_value := Vector3.ZERO, parent: Node3D = null) -> MeshInstance3D:
-    var part := MeshInstance3D.new()
-    part.mesh = mesh
-    part.material_override = material
-    part.position = position
-    part.scale = scale_value
-    part.rotation = rotation_value
-    var target_parent: Node3D = parent if parent != null else self
-    target_parent.add_child(part)
-    return part
-
-func _create_leg(position: Vector3, material: Material, hoof_material: Material, length := 0.72) -> void:
-    var pivot := Node3D.new()
-    pivot.position = position
-    add_child(pivot)
-    leg_pivots.append(pivot)
-
-    var leg_mesh := CylinderMesh.new()
-    leg_mesh.top_radius = 0.075
-    leg_mesh.bottom_radius = 0.095
-    leg_mesh.height = length
-    leg_mesh.radial_segments = 6
-    _part(leg_mesh, material, Vector3(0, -length * 0.42, 0), Vector3.ONE, Vector3.ZERO, pivot)
-
-    var hoof_mesh := BoxMesh.new()
-    hoof_mesh.size = Vector3(0.17, 0.12, 0.25)
-    _part(hoof_mesh, hoof_material, Vector3(0, -length * 0.82, -0.04), Vector3.ONE, Vector3.ZERO, pivot)
-
-func _build_deer_visual() -> void:
-    var fur := _material(Color("#9b7048"))
-    var fur_light := _material(Color("#c49a6b"))
-    var dark := _material(Color("#251d18"), 0.88)
-    var antler_mat := _material(Color("#66513d"), 0.9)
-
-    var body_mesh := SphereMesh.new()
-    body_mesh.radius = 0.56
-    body_mesh.height = 1.0
-    body_mesh.radial_segments = 10
-    body_mesh.rings = 6
-    _part(body_mesh, fur, Vector3(0, 1.05, 0.08), Vector3(0.95, 0.9, 1.5))
-
-    var chest_mesh := SphereMesh.new()
-    chest_mesh.radius = 0.39
-    chest_mesh.height = 0.72
-    chest_mesh.radial_segments = 9
-    chest_mesh.rings = 5
-    _part(chest_mesh, fur_light, Vector3(0, 1.16, -0.45), Vector3(0.9, 1.0, 0.9))
-
-    var neck_mesh := CylinderMesh.new()
-    neck_mesh.top_radius = 0.2
-    neck_mesh.bottom_radius = 0.3
-    neck_mesh.height = 0.9
-    neck_mesh.radial_segments = 8
-    _part(neck_mesh, fur, Vector3(0, 1.55, -0.64), Vector3.ONE, Vector3(deg_to_rad(-24.0), 0, 0))
-
-    var head_mesh := SphereMesh.new()
-    head_mesh.radius = 0.3
-    head_mesh.height = 0.58
-    head_mesh.radial_segments = 9
-    head_mesh.rings = 5
-    _part(head_mesh, fur, Vector3(0, 1.92, -0.9), Vector3(0.82, 0.9, 1.18))
-
-    var muzzle_mesh := BoxMesh.new()
-    muzzle_mesh.size = Vector3(0.3, 0.2, 0.38)
-    _part(muzzle_mesh, fur_light, Vector3(0, 1.84, -1.16))
-
-    var nose_mesh := BoxMesh.new()
-    nose_mesh.size = Vector3(0.24, 0.15, 0.1)
-    _part(nose_mesh, dark, Vector3(0, 1.84, -1.38))
-
-    var ear_mesh := BoxMesh.new()
-    ear_mesh.size = Vector3(0.15, 0.34, 0.09)
-    _part(ear_mesh, fur, Vector3(-0.24, 2.18, -0.92), Vector3.ONE, Vector3(0, 0, deg_to_rad(-38.0)))
-    _part(ear_mesh, fur, Vector3(0.24, 2.18, -0.92), Vector3.ONE, Vector3(0, 0, deg_to_rad(38.0)))
-
-    var eye_mesh := SphereMesh.new()
-    eye_mesh.radius = 0.04
-    eye_mesh.height = 0.08
-    eye_mesh.radial_segments = 6
-    eye_mesh.rings = 3
-    _part(eye_mesh, dark, Vector3(-0.18, 1.99, -1.13))
-    _part(eye_mesh, dark, Vector3(0.18, 1.99, -1.13))
-
-    var antler_mesh := CylinderMesh.new()
-    antler_mesh.top_radius = 0.025
-    antler_mesh.bottom_radius = 0.045
-    antler_mesh.height = 0.52
-    antler_mesh.radial_segments = 5
-    _part(antler_mesh, antler_mat, Vector3(-0.16, 2.34, -0.9), Vector3.ONE, Vector3(0, 0, deg_to_rad(-20.0)))
-    _part(antler_mesh, antler_mat, Vector3(0.16, 2.34, -0.9), Vector3.ONE, Vector3(0, 0, deg_to_rad(20.0)))
-    _part(antler_mesh, antler_mat, Vector3(-0.3, 2.48, -0.9), Vector3(0.75, 0.75, 0.75), Vector3(0, 0, deg_to_rad(55.0)))
-    _part(antler_mesh, antler_mat, Vector3(0.3, 2.48, -0.9), Vector3(0.75, 0.75, 0.75), Vector3(0, 0, deg_to_rad(-55.0)))
-
-    _create_leg(Vector3(-0.31, 0.78, -0.42), fur, dark, 0.82)
-    _create_leg(Vector3(0.31, 0.78, -0.42), fur, dark, 0.82)
-    _create_leg(Vector3(-0.31, 0.78, 0.52), fur, dark, 0.82)
-    _create_leg(Vector3(0.31, 0.78, 0.52), fur, dark, 0.82)
-
-    var tail_mesh := SphereMesh.new()
-    tail_mesh.radius = 0.18
-    tail_mesh.height = 0.34
-    tail_mesh.radial_segments = 7
-    tail_mesh.rings = 4
-    _part(tail_mesh, fur_light, Vector3(0, 1.18, 0.94), Vector3(0.65, 0.85, 1.0))
-
-    var shape := CapsuleShape3D.new()
-    shape.radius = 0.52
-    shape.height = 1.5
-    var collision := CollisionShape3D.new()
-    collision.shape = shape
-    collision.position = Vector3(0, 1.0, 0)
-    collision.rotation.x = deg_to_rad(90.0)
-    add_child(collision)
-
-func _build_boar_visual() -> void:
-    var fur := _material(Color("#4b3328"))
-    var fur_light := _material(Color("#6f4c38"))
-    var dark := _material(Color("#171513"), 0.88)
-    var tusk_mat := _material(Color("#e4d7b5"), 0.72)
-
-    var body_mesh := SphereMesh.new()
-    body_mesh.radius = 0.62
-    body_mesh.height = 1.08
-    body_mesh.radial_segments = 10
-    body_mesh.rings = 6
-    _part(body_mesh, fur, Vector3(0, 0.78, 0.08), Vector3(1.16, 0.86, 1.62))
-
-    var shoulder_mesh := SphereMesh.new()
-    shoulder_mesh.radius = 0.48
-    shoulder_mesh.height = 0.86
-    shoulder_mesh.radial_segments = 9
-    shoulder_mesh.rings = 5
-    _part(shoulder_mesh, fur_light, Vector3(0, 0.88, -0.48), Vector3(1.12, 1.0, 1.08))
-
-    var head_mesh := SphereMesh.new()
-    head_mesh.radius = 0.38
-    head_mesh.height = 0.66
-    head_mesh.radial_segments = 9
-    head_mesh.rings = 5
-    _part(head_mesh, fur, Vector3(0, 0.88, -0.9), Vector3(0.95, 0.82, 1.12))
-
-    var snout_mesh := BoxMesh.new()
-    snout_mesh.size = Vector3(0.42, 0.28, 0.5)
-    _part(snout_mesh, fur_light, Vector3(0, 0.76, -1.23))
-
-    var nose_mesh := BoxMesh.new()
-    nose_mesh.size = Vector3(0.34, 0.2, 0.12)
-    _part(nose_mesh, dark, Vector3(0, 0.76, -1.52))
-
-    var ear_mesh := BoxMesh.new()
-    ear_mesh.size = Vector3(0.18, 0.3, 0.09)
-    _part(ear_mesh, fur, Vector3(-0.27, 1.17, -0.92), Vector3.ONE, Vector3(0, 0, deg_to_rad(-28.0)))
-    _part(ear_mesh, fur, Vector3(0.27, 1.17, -0.92), Vector3.ONE, Vector3(0, 0, deg_to_rad(28.0)))
-
-    var eye_mesh := SphereMesh.new()
-    eye_mesh.radius = 0.045
-    eye_mesh.height = 0.09
-    eye_mesh.radial_segments = 6
-    eye_mesh.rings = 3
-    _part(eye_mesh, dark, Vector3(-0.2, 0.94, -1.22))
-    _part(eye_mesh, dark, Vector3(0.2, 0.94, -1.22))
-
-    var tusk_mesh := CylinderMesh.new()
-    tusk_mesh.top_radius = 0.025
-    tusk_mesh.bottom_radius = 0.055
-    tusk_mesh.height = 0.3
-    tusk_mesh.radial_segments = 7
-    _part(tusk_mesh, tusk_mat, Vector3(-0.22, 0.68, -1.42), Vector3.ONE, Vector3(deg_to_rad(65.0), 0, deg_to_rad(-18.0)))
-    _part(tusk_mesh, tusk_mat, Vector3(0.22, 0.68, -1.42), Vector3.ONE, Vector3(deg_to_rad(65.0), 0, deg_to_rad(18.0)))
-
-    _create_leg(Vector3(-0.4, 0.56, -0.5), fur, dark, 0.64)
-    _create_leg(Vector3(0.4, 0.56, -0.5), fur, dark, 0.64)
-    _create_leg(Vector3(-0.4, 0.56, 0.58), fur, dark, 0.64)
-    _create_leg(Vector3(0.4, 0.56, 0.58), fur, dark, 0.64)
-
-    var tail_mesh := CylinderMesh.new()
-    tail_mesh.top_radius = 0.035
-    tail_mesh.bottom_radius = 0.055
-    tail_mesh.height = 0.42
-    tail_mesh.radial_segments = 6
-    _part(tail_mesh, fur, Vector3(0, 0.88, 1.05), Vector3.ONE, Vector3(deg_to_rad(62.0), 0, 0))
-
-    var shape := CapsuleShape3D.new()
-    shape.radius = 0.58
-    shape.height = 1.45
-    var collision := CollisionShape3D.new()
-    collision.shape = shape
-    collision.position = Vector3(0, 0.62, 0)
-    collision.rotation.x = deg_to_rad(90.0)
-    add_child(collision)
