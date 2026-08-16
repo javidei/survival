@@ -6,6 +6,7 @@ const MOVEMENT_SOURCE = preload("res://assets/third_party/kaykit/adventurers/ani
 @export var blend_time := 0.14
 @export var walk_threshold := 0.25
 @export var run_threshold := 6.15
+@export var visual_ground_offset := -0.10
 
 @onready var player: CharacterBody3D = get_node(player_path) as CharacterBody3D
 @onready var ranger_root: Node3D = $Ranger
@@ -18,6 +19,9 @@ var run_animation := StringName()
 var jump_animation := StringName()
 
 func _ready() -> void:
+    # Los modelos KayKit dejan visualmente una pequeña separación respecto al origen físico.
+    # Compensamos solo la capa visual: la cápsula y las mecánicas permanecen intactas.
+    position.y = visual_ground_offset
     call_deferred("_setup_animations")
 
 func _process(_delta: float) -> void:
