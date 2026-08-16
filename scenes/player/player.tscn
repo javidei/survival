@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://assets/third_party/kaykit/adventurers/characters/Ranger.glb" id="2_ranger"]
+[ext_resource type="Script" path="res://scripts/player/kaykit_character_animator.gd" id="3_animator"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
 radius = 0.42
@@ -18,6 +19,8 @@ position = Vector3(0, 0.9, 0)
 shape = SubResource("CapsuleShape_player")
 
 [node name="Visual" type="Node3D" parent="."]
+rotation = Vector3(0, 3.14159265, 0)
+script = ExtResource("3_animator")
 
 [node name="Ranger" parent="Visual" instance=ExtResource("2_ranger")]
 
