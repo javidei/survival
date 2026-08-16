@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const HOTBAR_SLOT_SCRIPT = preload("res://scripts/ui/hotbar_slot.gd")
+
 @export var player_path: NodePath
 @onready var inventory_label: Label = %InventoryLabel
 @onready var prompt_label: Label = %PromptLabel
@@ -7,7 +9,9 @@ extends CanvasLayer
 @onready var player: Node = get_node_or_null(player_path)
 
 var survival_label: Label
-var hotbar_label: Label
+var hotbar_container: HBoxContainer
+var hotbar_name_label: Label
+var hotbar_slots: Array[Control] = []
 var recipe_label: Label
 var notification_label: Label
 var notification_time := 0.0
@@ -32,7 +36,7 @@ func _process(delta: float) -> void:
     var clock_text := "Día 1 · 08:00"
     if is_instance_valid(day_night) and day_night.has_method("get_display_time"):
         clock_text = day_night.get_display_time()
-    status_label.text = "NARANJAL SURVIVAL  •  ALPHA 0.2.8  •  %s" % clock_text
+    status_label.text = "NARANJAL SURVIVAL  •  ALPHA 0.2.9  •  %s" % clock_text
     if notification_time > 0.0:
         notification_time -= delta
         notification_label.visible = true
@@ -46,14 +50,36 @@ func _build_extra_labels() -> void:
     survival_label.add_theme_color_override("font_color", Color(0.95, 0.97, 0.9, 1))
     add_child(survival_label)
 
-    hotbar_label = Label.new()
-    hotbar_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-    hotbar_label.position = Vector2(-390, -42)
-    hotbar_label.size = Vector2(780, 30)
-    hotbar_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    hotbar_label.add_theme_font_size_override("font_size", 16)
-    hotbar_label.add_theme_color_override("font_color", Color("#fff0c8"))
-    add_child(hotbar_label)
+    hotbar_name_label = Label.new()
+    hotbar_name_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+    hotbar_name_label.offset_left = -210.0
+    hotbar_name_label.offset_top = -118.0
+    hotbar_name_label.offset_right = 210.0
+    hotbar_name_label.offset_bottom = -94.0
+    hotbar_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    hotbar_name_label.add_theme_font_size_override("font_size", 14)
+    hotbar_name_label.add_theme_color_override("font_color", Color("#f5e5b9"))
+    hotbar_name_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+    hotbar_name_label.add_theme_constant_override("shadow_offset_x", 1)
+    hotbar_name_label.add_theme_constant_override("shadow_offset_y", 1)
+    add_child(hotbar_name_label)
+
+    hotbar_container = HBoxContainer.new()
+    hotbar_container.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+    hotbar_container.offset_left = -224.0
+    hotbar_container.offset_top = -92.0
+    hotbar_container.offset_right = 224.0
+    hotbar_container.offset_bottom = -18.0
+    hotbar_container.alignment = BoxContainer.ALIGNMENT_CENTER
+    hotbar_container.add_theme_constant_override("separation", 6)
+    add_child(hotbar_container)
+
+    for i in range(GameState.HOTBAR.size()):
+        var item_id: String = GameState.HOTBAR[i]
+        var slot: Control = HOTBAR_SLOT_SCRIPT.new()
+        slot.configure(i, item_id, GameState.get_item_name(item_id))
+        hotbar_container.add_child(slot)
+        hotbar_slots.append(slot)
 
     recipe_label = Label.new()
     recipe_label.position = Vector2(20, 150)
@@ -93,13 +119,11 @@ func _on_stats_changed(stats: Dictionary) -> void:
         int(stats.get("thirst", 0.0)),
     ]
 
-func _on_hotbar_changed(index: int, _item_id: String) -> void:
-    var parts: Array[String] = []
-    for i in range(GameState.HOTBAR.size()):
-        var item_id: String = GameState.HOTBAR[i]
-        var marker := "▶" if i == index else " "
-        parts.append("%s%d %s x%d" % [marker, i + 1, GameState.get_item_name(item_id), GameState.get_amount(item_id)])
-    hotbar_label.text = "   ".join(parts)
+func _on_hotbar_changed(index: int, item_id: String) -> void:
+    for i in range(hotbar_slots.size()):
+        var current_id: String = GameState.HOTBAR[i]
+        hotbar_slots[i].update_state(i == index, GameState.get_amount(current_id))
+    hotbar_name_label.text = "%s  x%d" % [GameState.get_item_name(item_id), GameState.get_amount(item_id)]
 
 func _on_recipe_changed(recipe_id: String) -> void:
     recipe_label.text = "[C] Fabricar · [V] Cambiar receta  →  %s" % GameState.get_recipe_text(recipe_id)
