@@ -2,76 +2,77 @@
 
 Survival 3D en **Godot 4** con dirección visual low-poly/colorida inspirada en la claridad de juegos como *Raft*, pero ambientado en un bosque abierto.
 
-## Estado: 0.2.7 alpha
+## Estado: 0.2.8 alpha
 
 **Demo web:** https://javidei.github.io/survival/
 
-La demo se exporta automáticamente desde `main` mediante GitHub Actions y se publica en GitHub Pages.
+La demo pública se exporta automáticamente desde `main` mediante GitHub Actions y se publica en GitHub Pages. Mientras la 0.2.8 permanezca en rama de prueba, la URL pública seguirá mostrando la última versión fusionada.
 
-Esta versión ya contiene un bucle survival jugable de base:
+Esta versión mantiene el bucle survival jugable de base:
 
-- pantalla de bienvenida previa al juego con tipografías pixel integradas dentro del propio proyecto;
-- personaje humanoide KayKit en tercera persona;
+- pantalla de bienvenida previa al juego con tipografías pixel integradas;
+- personaje humanoide KayKit en tercera persona con idle, caminar y correr;
 - cámara libre/orbital con ratón y zoom con la rueda;
 - movimiento relativo a la dirección de la cámara;
-- bosque abierto generado en tiempo de ejecución;
 - árboles talables con hacha y rocas picables con pico;
 - drops físicos de madera, piedra y carne;
-- inventario con materiales, comida, herramientas y piezas de construcción;
-- hotbar de seis huecos;
-- crafting de hacha, pico, lanza, suelo, pared y hoguera;
-- vida, hambre y sed con deterioro progresivo;
-- bayas comestibles y estanque de agua potable;
-- ciclo día/noche completo con oscurecimiento del entorno;
-- construcción modular con previsualización fantasma y rotación;
-- hogueras que permiten cocinar carne cruda;
-- fauna que deambula por el bosque;
-- HUD con estadísticas, recursos, receta activa, hotbar y hora del día.
+- inventario, hotbar y crafting;
+- vida, hambre y sed;
+- ciclo día/noche;
+- construcción modular;
+- hogueras para cocinar;
+- fauna y NPC;
+- HUD de supervivencia.
+
+## Cambios 0.2.8
+
+Esta tanda se centra en limpiar el escenario antes de tocar fauna y edificios:
+
+- `BIENVENIDO A` y la línea inferior de versión usan `Windows Regular.ttf` sin forzar rasterizado de 1 bit, con colores y tamaños más visibles para Web;
+- el generador principal deja de crear los 165 árboles, 68 rocas y 110 arbustos hechos con primitivas;
+- añade un pase de bosque propio basado en los modelos Kenney Fantasy Town `tree`, `tree-high`, `tree-crooked`, `tree-high-crooked` y `tree-high-round`;
+- crea 56 árboles Kenney recolectables repartidos en siete grupos naturales en vez de una nube completamente aleatoria;
+- añade 14 árboles jóvenes decorativos sin scripts ni físicas individuales;
+- crea 18 rocas recolectables usando `rock-small`, `rock-large` y `rock-wide` de Kenney;
+- conserva espacios abiertos alrededor de la zona inicial y de los recorridos principales;
+- reduce el radio de generación de 92 a 68 metros;
+- reduce el plano físico principal de 220 × 220 a 160 × 160 metros;
+- reduce temporalmente la fauna procedural a 4 animales pasivos y 2 hostiles;
+- mantiene temporalmente solo 2 aldeanos KayKit para facilitar las pruebas visuales y de rendimiento;
+- conserva intactos los archivos originales y licencias dentro de `assets/third_party/`.
 
 ## Pantalla inicial
 
 El proyecto arranca en `scenes/intro.tscn` antes de cargar el mundo 3D.
 
-La intro se dibuja directamente a la resolución real del viewport y desactiva antialiasing y posicionamiento subpíxel para mantener los bordes de los glifos nítidos.
+- **NARANJAL SURVIVAL** y **PULSA PARA CONTINUAR**: `ONESIZE_.TTF`.
+- **BIENVENIDO A** y **NARANJAL SURVIVAL - PROTOTIPO 0.2.8**: `Windows Regular.ttf`.
 
-En la 0.2.7 la composición usa `ONESIZE_.TTF` para **NARANJAL SURVIVAL** y **PULSA PARA CONTINUAR**, y `Windows Regular.ttf` para **BIENVENIDO A** y la línea inferior de versión. Se usa esta fuente para los textos secundarios porque es la misma fuente UI utilizada por Pixel Adventure en su exportación Web y evita los glifos deformados que estaba mostrando Commodore Pixelized.
+Los dos textos secundarios se dibujan con un gris lavanda más claro y con mayor tamaño para que sigan siendo legibles sobre el fondo negro en la exportación Web.
 
-Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y `NARANJAL SURVIVAL - PROTOTIPO 0.2.7`. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
+## Correcciones conservadas de 0.2.7
 
-## Correcciones 0.2.7
-
-- las animaciones KayKit ya no se copian directamente entre GLB con rutas de esqueleto incompatibles;
-- las pistas de animación se retargetean en tiempo de ejecución al `Skeleton3D` real del personaje instanciado;
-- se cargan las librerías `Rig_Medium_MovementBasic` y `Rig_Medium_General` para localizar idle, caminar, correr y salto;
-- idle, caminar y correr se fuerzan en bucle;
-- el idle se aplica inmediatamente al iniciar para evitar que jugador y NPC permanezcan en T-pose;
-- `Windows Regular.ttf` sustituye a Commodore Pixelized en `BIENVENIDO A` y en la línea inferior de versión.
-
-## Correcciones 0.2.6
-
-- cámara orbital independiente alrededor del personaje;
-- zoom con rueda de ratón;
-- `floor_snap` y presión vertical para mantener jugador y NPC sobre el suelo;
-- ajuste adicional de la capa visual KayKit para eliminar el pequeño desfase visible de los pies en idle;
-- posición inicial del jugador más cercana al plano de suelo.
+- las pistas de movimiento KayKit se retargetean al `Skeleton3D` real de cada personaje;
+- idle, caminar y correr funcionan en bucle;
+- el idle se aplica al iniciar, evitando la T-pose de jugador y NPC.
 
 ## Controles
 
 - En la pantalla inicial: cualquier tecla, clic izquierdo o toque para continuar
-- `Clic dentro del juego`: capturar el ratón y activar la cámara
-- `Ratón`: orbitar la cámara horizontal y verticalmente
-- `Rueda del ratón`: acercar/alejar la cámara
-- `WASD`: movimiento relativo a donde estás mirando
+- `Clic dentro del juego`: capturar el ratón
+- `Ratón`: orbitar la cámara
+- `Rueda`: zoom
+- `WASD`: movimiento
 - `Shift`: correr
 - `Espacio`: saltar
-- `E`: recoger / beber / cocinar / interactuar
-- `Clic izquierdo` con el ratón capturado: usar herramienta, atacar o colocar una construcción
+- `E`: interactuar
+- `Clic izquierdo`: usar herramienta, atacar o colocar construcción
 - `1`–`6`: seleccionar hotbar
-- `C`: fabricar la receta activa
-- `V`: cambiar de receta
-- `F`: comer comida disponible
-- `R`: girar la pieza de construcción
-- `Esc`: liberar el ratón; vuelve a hacer clic para recuperar la cámara
+- `C`: fabricar
+- `V`: cambiar receta
+- `F`: comer
+- `R`: girar construcción
+- `Esc`: liberar el ratón
 
 ## Hotbar
 
@@ -82,24 +83,15 @@ Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CO
 5. Pared
 6. Hoguera
 
-Los huecos muestran también cuántas unidades tienes. Las herramientas deben fabricarse antes de poder usarse.
-
-## Bucle actual
-
-1. Recoge recursos sueltos para fabricar las primeras herramientas.
-2. Fabrica un hacha y un pico.
-3. Tala árboles y pica rocas para conseguir materiales mediante drops físicos.
-4. Fabrica suelos, paredes y una hoguera.
-5. Construye un pequeño refugio.
-6. Bebe en el estanque y come bayas para mantener hambre y sed.
-7. Fabrica una lanza para defenderte de los jabalíes.
-8. Cocina la carne obtenida de animales en una hoguera.
-9. Sobrevive al ciclo completo de día y noche.
-
 ## Assets
 
-El proyecto conserva sus sistemas propios y está incorporando progresivamente assets low-poly externos desde `assets/third_party/` para mejorar personaje, construcciones, vegetación y props sin acoplar las mecánicas directamente a los modelos originales.
+Los modelos externos se tratan como librerías inmutables dentro de `assets/third_party/`. La lógica del juego sigue viviendo en escenas y scripts propios, de modo que podamos cambiar o ajustar el aspecto sin acoplar la recolección, construcción o supervivencia a un archivo GLB concreto.
 
-## Próximos pasos
+En la 0.2.8 el bosque utiliza principalmente **Kenney Fantasy Town** para árboles y rocas. KayKit sigue siendo la base de jugador/NPC. Quaternius sigue disponible para construcciones, herramientas y props en las siguientes tandas.
 
-La siguiente fase debería seguir corrigiendo visualmente el escenario por tandas: vegetación y árboles, fauna, escala/ensamblado de edificios, hogueras/props y después optimización del tamaño y densidad del mundo.
+## Siguientes tandas recomendadas
+
+1. Mejorar el terreno/hierba y eliminar las manchas planas que todavía se ven cerca del poblado.
+2. Sustituir ciervos y jabalíes procedurales por modelos de asset compatibles si los packs disponibles contienen fauna adecuada.
+3. Corregir escala y ensamblado de los edificios del poblado.
+4. Sustituir la hoguera y props primitivos restantes por assets de Quaternius/Kenney.
