@@ -59,13 +59,24 @@ jobs:
           STATUS=$?
           set -e
           cat export.log
+
           if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Failed to load script" export.log; then
+            ERROR_LINE="$(grep -Ei "ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load script|Failed|Cannot|Could not" export.log | tail -n 1 || true)"
+            if [ -z "$ERROR_LINE" ]; then
+              ERROR_LINE="Godot terminó la exportación Web con código ${STATUS}; revisar export.log."
+            fi
+            echo "::error title=Godot Web export::${ERROR_LINE}"
             echo "La exportación web ha fallado."
             exit 1
           fi
-          test -s web/index.html
-          test -s web/index.wasm
-          test -s web/index.pck
+
+          for OUTPUT_FILE in web/index.html web/index.wasm web/index.pck; do
+            if [ ! -s "$OUTPUT_FILE" ]; then
+              echo "::error title=Godot Web export::Falta el artefacto esperado ${OUTPUT_FILE} tras una exportación con código 0."
+              exit 1
+            fi
+          done
+
           touch web/.nojekyll
 
       - name: Configurar GitHub Pages
