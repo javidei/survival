@@ -38,6 +38,22 @@ jobs:
             mv "/root/.local/share/godot/export_templates/${GODOT_VERSION}.stable" "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
           fi
 
+      - name: Validar GDScript crítico
+        run: |
+          set +e
+          godot --headless --path . --script res://scripts/world/world_visual_overhaul.gd --check-only > script-check.log 2>&1
+          STATUS=$?
+          set -e
+          cat script-check.log
+          if [ "$STATUS" -ne 0 ]; then
+            DETAIL="$(grep -Ei "SCRIPT ERROR:|Parse Error:|ERROR:" script-check.log | head -n 12 | tr '\n' ' ' || true)"
+            if [ -z "$DETAIL" ]; then
+              DETAIL="world_visual_overhaul.gd no supera --check-only (código ${STATUS})."
+            fi
+            echo "::error title=GDScript check::${DETAIL}"
+            exit 1
+          fi
+
       - name: Importar proyecto y validar GDScript
         run: |
           set +e
