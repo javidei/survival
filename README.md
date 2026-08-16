@@ -2,7 +2,7 @@
 
 Survival 3D en **Godot 4** con dirección visual low-poly/colorida inspirada en la claridad de juegos como *Raft*, pero ambientado en un bosque abierto.
 
-## Estado: 0.2.5 alpha
+## Estado: 0.2.6 alpha
 
 **Demo web:** https://javidei.github.io/survival/
 
@@ -11,8 +11,8 @@ La demo se exporta automáticamente desde `main` mediante GitHub Actions y se pu
 Esta versión ya contiene un bucle survival jugable de base:
 
 - pantalla de bienvenida previa al juego con tipografías pixel integradas dentro del propio proyecto;
-- personaje humanoide en tercera persona;
-- cámara libre/orbital con ratón, caminar, correr y saltar;
+- personaje humanoide KayKit en tercera persona;
+- cámara libre/orbital con ratón y zoom con la rueda;
 - movimiento relativo a la dirección de la cámara;
 - bosque abierto generado en tiempo de ejecución;
 - árboles talables con hacha y rocas picables con pico;
@@ -26,25 +26,33 @@ Esta versión ya contiene un bucle survival jugable de base:
 - construcción modular con previsualización fantasma y rotación;
 - hogueras que permiten cocinar carne cruda;
 - fauna que deambula por el bosque;
-- jabalíes hostiles con persecución, daño y drops de carne;
-- HUD con estadísticas, recursos, receta activa, hotbar y hora del día;
-- cabaña abandonada y entorno stylized con niebla e iluminación cálida.
+- HUD con estadísticas, recursos, receta activa, hotbar y hora del día.
 
 ## Pantalla inicial
 
 El proyecto arranca en `scenes/intro.tscn` antes de cargar el mundo 3D.
 
-La 0.2.5 elimina el reescalado previo a 320×180 que podía suavizar la letra en navegador. La intro se dibuja directamente a la resolución real del viewport y desactiva antialiasing y posicionamiento subpíxel para mantener los bordes de los glifos totalmente nítidos.
+La intro se dibuja directamente a la resolución real del viewport y desactiva antialiasing y posicionamiento subpíxel para mantener los bordes de los glifos nítidos.
 
-La composición usa los TTF pixel proporcionados por el proyecto: `ONESIZE_.TTF` para **NARANJAL SURVIVAL** y **PULSA PARA CONTINUAR**, y `ONESR___.TTF` para **BIENVENIDO A** y la línea de versión. Ambas fuentes se renderizan como bitmaps de 1 bit, sin interpolación.
+En la 0.2.6 la composición usa `ONESIZE_.TTF` para **NARANJAL SURVIVAL** y **PULSA PARA CONTINUAR**, y `Commodore Pixelized v1.2.ttf` para **BIENVENIDO A** y la línea inferior de versión.
 
-Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y `NARANJAL SURVIVAL - PROTOTIPO 0.2.5`. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
+Muestra `BIENVENIDO A`, `NARANJAL SURVIVAL`, el aviso parpadeante `PULSA PARA CONTINUAR` y `NARANJAL SURVIVAL - PROTOTIPO 0.2.6`. Cualquier tecla, clic izquierdo o toque continúa hacia el juego.
+
+## Correcciones 0.2.6
+
+- cámara orbital independiente alrededor del personaje;
+- zoom con rueda de ratón;
+- `floor_snap` y presión vertical para mantener jugador y NPC sobre el suelo;
+- ajuste adicional de la capa visual KayKit para eliminar el pequeño desfase visible de los pies en idle;
+- posición inicial del jugador más cercana al plano de suelo;
+- tipografía Commodore Pixelized para los textos superior e inferior de la intro.
 
 ## Controles
 
 - En la pantalla inicial: cualquier tecla, clic izquierdo o toque para continuar
 - `Clic dentro del juego`: capturar el ratón y activar la cámara
-- `Ratón`: girar la cámara horizontal y verticalmente
+- `Ratón`: orbitar la cámara horizontal y verticalmente
+- `Rueda del ratón`: acercar/alejar la cámara
 - `WASD`: movimiento relativo a donde estás mirando
 - `Shift`: correr
 - `Espacio`: saltar
@@ -80,10 +88,10 @@ Los huecos muestran también cuántas unidades tienes. Las herramientas deben fa
 8. Cocina la carne obtenida de animales en una hoguera.
 9. Sobrevive al ciclo completo de día y noche.
 
-## Filosofía de arte
+## Assets
 
-La base sigue sin depender de modelos descargados ni licencias externas. Los props, animales, construcciones y personaje están formados con primitivas 3D y materiales simples de Godot. Esto nos permite desarrollar primero la jugabilidad y sustituir progresivamente cada elemento por assets definitivos sin rehacer los sistemas.
+El proyecto conserva sus sistemas propios y está incorporando progresivamente assets low-poly externos desde `assets/third_party/` para mejorar personaje, construcciones, vegetación y props sin acoplar las mecánicas directamente a los modelos originales.
 
 ## Próximos pasos
 
-La siguiente fase debería mejorar calidad y profundidad en lugar de añadir sistemas nuevos a ciegas: animaciones de herramientas y combate, guardado/carga, construcción con comprobación de colisiones, mejor IA, clima, audio, modelos definitivos y optimización del bosque.
+La siguiente fase debería seguir corrigiendo visualmente el escenario por tandas: vegetación y árboles, fauna, escala/ensamblado de edificios, hogueras/props y después optimización del tamaño y densidad del mundo.

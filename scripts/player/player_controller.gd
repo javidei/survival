@@ -7,8 +7,14 @@ extends CharacterBody3D
 @export var mouse_sensitivity := 0.003
 @export var camera_min_pitch := deg_to_rad(-55.0)
 @export var camera_max_pitch := deg_to_rad(35.0)
+@export var camera_min_distance := 2.4
+@export var camera_max_distance := 7.5
+@export var camera_zoom_step := 0.55
+@export var ground_stick_velocity := 1.5
 
+@onready var visual: Node3D = $Visual
 @onready var pivot: Node3D = $CameraPivot
+@onready var spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 @onready var interaction_area: Area3D = $InteractionArea
 
 var gravity := 18.0
@@ -19,15 +25,25 @@ var spawn_position := Vector3.ZERO
 func _ready() -> void:
     add_to_group("player")
     spawn_position = global_position
+    floor_snap_length = 0.55
+    floor_stop_on_slope = true
     # En Web el navegador exige una interacción del usuario para bloquear el puntero.
     # Se deja visible al iniciar y el primer clic dentro del juego activa el control de cámara.
     Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     GameState.player_died.connect(_on_player_died)
-    GameState.notification.emit("Haz clic para controlar la cámara · Esc libera el ratón")
+    GameState.notification.emit("Haz clic para controlar la cámara · rueda para zoom · Esc libera el ratón")
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event is InputEventMouseButton:
-        if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+    if event is InputEventMouseButton and event.pressed:
+        if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+            _change_zoom(-camera_zoom_step)
+            get_viewport().set_input_as_handled()
+            return
+        if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+            _change_zoom(camera_zoom_step)
+            get_viewport().set_input_as_handled()
+            return
+        if event.button_index == MOUSE_BUTTON_LEFT and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
             _capture_mouse()
             get_viewport().set_input_as_handled()
             return
@@ -66,11 +82,23 @@ func _unhandled_input(event: InputEvent) -> void:
 func _capture_mouse() -> void:
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-func _rotate_view(relative_motion: Vector2) -> void:
-    # Giro horizontal: rota al jugador completo para que movimiento y mirada coincidan.
-    rotate_y(-relative_motion.x * mouse_sensitivity)
+func _change_zoom(amount: float) -> void:
+    spring_arm.spring_length = clampf(
+        spring_arm.spring_length + amount,
+        camera_min_distance,
+        camera_max_distance
+    )
 
-    # Giro vertical: solo inclina el pivote de cámara y evita vueltas completas.
+func _rotate_view(relative_motion: Vector2) -> void:
+    # El cuerpo conserva el yaw de cámara para que movimiento, interacción y construcción
+    # sigan usando la dirección de mirada, pero la malla mantiene su orientación mundial.
+    # De esta forma la cámara puede orbitar alrededor de un personaje quieto sin hacerlo girar.
+    var visual_yaw := visual.global_rotation.y
+    rotate_y(-relative_motion.x * mouse_sensitivity)
+    var visual_rotation := visual.global_rotation
+    visual_rotation.y = visual_yaw
+    visual.global_rotation = visual_rotation
+
     pitch = clamp(
         pitch - relative_motion.y * mouse_sensitivity,
         camera_min_pitch,
@@ -79,10 +107,15 @@ func _rotate_view(relative_motion: Vector2) -> void:
     pivot.rotation.x = pitch
 
 func _physics_process(delta: float) -> void:
-    if not is_on_floor():
+    # Una pequeña velocidad descendente mantiene el CharacterBody pegado a suelos planos,
+    # desniveles y juntas de piezas cuando está quieto. Al saltar se desactiva de forma natural.
+    if is_on_floor():
+        if Input.is_action_just_pressed("jump"):
+            velocity.y = jump_velocity
+        else:
+            velocity.y = -ground_stick_velocity
+    else:
         velocity.y -= gravity * delta
-    elif Input.is_action_just_pressed("jump"):
-        velocity.y = jump_velocity
 
     var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
     var local_direction := Vector3(input_vector.x, 0.0, input_vector.y)
@@ -92,7 +125,19 @@ func _physics_process(delta: float) -> void:
 
     velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
     velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
+
+    if direction.length_squared() > 0.001:
+        var visual_rotation := visual.global_rotation
+        visual_rotation.y = lerp_angle(
+            visual_rotation.y,
+            atan2(direction.x, direction.z),
+            minf(1.0, 10.0 * delta)
+        )
+        visual.global_rotation = visual_rotation
+
     move_and_slide()
+    if velocity.y <= 0.0 and not is_on_floor():
+        apply_floor_snap()
     _refresh_interaction_target()
 
 func _refresh_interaction_target() -> void:

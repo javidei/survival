@@ -8,6 +8,7 @@ const KAYKIT_ANIMATOR = preload("res://scripts/player/kaykit_character_animator.
 @export_multiline var greeting := "Hola."
 @export var wander_radius := 3.5
 @export var move_speed := 1.15
+@export var ground_stick_velocity := 1.25
 
 var home_position := Vector3.ZERO
 var target_position := Vector3.ZERO
@@ -20,7 +21,8 @@ func _ready() -> void:
     add_to_group("npc")
     collision_layer = 2
     collision_mask = 1
-    floor_snap_length = 0.35
+    floor_snap_length = 0.55
+    floor_stop_on_slope = true
     home_position = global_position
     rng.seed = hash(npc_name) + int(abs(global_position.x * 37.0 + global_position.z * 53.0))
     _create_collision()
@@ -28,7 +30,11 @@ func _ready() -> void:
     _pick_target()
 
 func _physics_process(delta: float) -> void:
-    if not is_on_floor():
+    # Mantener una presión descendente mínima evita que un NPC quede separado del suelo
+    # al pasar de caminar a idle sobre juntas o pequeños desniveles.
+    if is_on_floor():
+        velocity.y = -ground_stick_velocity
+    else:
         velocity.y -= gravity * delta
 
     var desired := Vector3.ZERO
@@ -50,6 +56,8 @@ func _physics_process(delta: float) -> void:
         rotation.y = lerp_angle(rotation.y, atan2(-desired.x, -desired.z), delta * 5.0)
 
     move_and_slide()
+    if velocity.y <= 0.0 and not is_on_floor():
+        apply_floor_snap()
 
 func _pick_target() -> void:
     var angle := rng.randf_range(0.0, TAU)
