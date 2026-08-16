@@ -61,6 +61,10 @@ jobs:
           cat export.log
 
           if [ "$STATUS" -ne 0 ] || grep -Eqi "SCRIPT ERROR:|Parse Error:|Failed to load script" export.log; then
+            PARSE_DETAIL="$(grep -Ei "SCRIPT ERROR:|Parse Error:" export.log | head -n 12 | tr '\n' ' ' || true)"
+            if [ -n "$PARSE_DETAIL" ]; then
+              echo "::error title=Godot parse detail::${PARSE_DETAIL}"
+            fi
             ERROR_LINE="$(grep -Ei "ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load script|Failed|Cannot|Could not" export.log | tail -n 1 || true)"
             if [ -z "$ERROR_LINE" ]; then
               ERROR_LINE="Godot terminó la exportación Web con código ${STATUS}; revisar export.log."
